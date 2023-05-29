@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DebugCompareClass</class>
+ <widget class="QMainWindow" name="DebugCompareClass">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>555</width>
+    <height>419</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>DebugCompare</string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QGridLayout" name="gridLayout">
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <item row="0" column="0">
+     <widget class="QLabel" name="label">
+      <property name="text">
+       <string>TextLabel</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <spacer name="horizontalSpacer">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeType">
+       <enum>QSizePolicy::Fixed</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>10</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item row="0" column="2">
+     <widget class="QLabel" name="label_2">
+      <property name="text">
+       <string>TextLabel</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0" colspan="3">
+     <widget class="QTableView" name="tableView"/>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QToolBar" name="mainToolBar">
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionrefresh"/>
+   <addaction name="actionAll"/>
+   <addaction name="actionOnly_different"/>
+   <addaction name="actionOnly_same"/>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+  <action name="actionOnly_same">
+   <property name="icon">
+    <iconset resource="DebuggerUI.qrc">
+     <normaloff>:/DebuggerUI/resources/equal.png</normaloff>:/DebuggerUI/resources/equal.png</iconset>
+   </property>
+   <property name="text">
+    <string>Only same</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionOnly_different">
+   <property name="icon">
+    <iconset resource="DebuggerUI.qrc">
+     <normaloff>:/DebuggerUI/resources/diff.png</normaloff>:/DebuggerUI/resources/diff.png</iconset>
+   </property>
+   <property name="text">
+    <string>Only different</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionAll">
+   <property name="icon">
+    <iconset resource="DebuggerUI.qrc">
+     <normaloff>:/DebuggerUI/resources/all.png</normaloff>:/DebuggerUI/resources/all.png</iconset>
+   </property>
+   <property name="text">
+    <string>All</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionrefresh">
+   <property name="icon">
+    <iconset resource="DebuggerUI.qrc">
+     <normaloff>:/DebuggerUI/resources/refresh.png</normaloff>:/DebuggerUI/resources/refresh.png</iconset>
+   </property>
+   <property name="text">
+    <string>refresh</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+  </action>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources>
+  <include location="DebuggerUI.qrc"/>
+ </resources>
+ <connections/>
+</ui>

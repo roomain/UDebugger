@@ -1,0 +1,16 @@
+<RCC>
+  <qresource prefix="DebuggerUI">
+    <file>./resources/object.png</file>
+    <file>./resources/folder.png</file>
+    <file>./resources/remove.png</file>
+    <file>./resources/coloring.png</file>
+    <file>./resources/valid.png</file>
+    <file>./resources/log.png</file>
+    <file>./resources/bug.png</file>
+    <file>./resources/all.png</file>
+    <file>./resources/diff.png</file>
+    <file>./resources/equal.png</file>
+    <file>./resources/refresh.png</file>
+    <file>./resources/cloneView.png</file>
+  </qresource>
+</RCC>
