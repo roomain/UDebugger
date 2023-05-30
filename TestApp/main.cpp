@@ -8,9 +8,6 @@
 
 int main(int argc, char *argv[])
 {
-#ifdef _WIN32
-    ShowWindow(GetConsoleWindow(), SW_HIDE);
-#endif
     QApplication a(argc, argv);
     QDebuggerServer server;
     Debugger::Logger::instance().setCallback(std::bind_front(&QDebuggerServer::log,&server));
@@ -18,5 +15,9 @@ int main(int argc, char *argv[])
     server.listen(QHostAddress("127.0.0.1"), 3001);
     DebuggedApp w;
     w.show();
+
+#ifdef _WIN32
+    ShowWindow(GetConsoleWindow(), SW_HIDE);
+#endif
     return a.exec();
 }

@@ -5,6 +5,7 @@
 
 class TestDebugClass;
 
+// descriptor
 class TestDescriptor : public Debugger::TClassDescriptor<TestDebugClass>
 {
 public:
@@ -12,7 +13,7 @@ public:
     ~TestDescriptor() = default;
 };
 
-
+// class to debug
 class TestDebugClass : public Debugger::TDebugObject<TestDescriptor>
 {
 private:
