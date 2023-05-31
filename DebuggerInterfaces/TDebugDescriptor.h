@@ -18,6 +18,8 @@ namespace Debugger
 
 	public:
 		virtual std::string className()const noexcept override { return typeid(DebugType).name(); }
+		virtual size_t classSize()const noexcept { return sizeof(DebugType); }
+		virtual std::string parentClassName() const noexcept { return ""; }
 
 		void serialize(IDebugObject* const a_pObj, ISerializer& a_ISerializer)const final
 		{
@@ -40,5 +42,7 @@ namespace Debugger
 	{
 	public:
 		virtual std::string className()const noexcept override { return typeid(DebugType).name(); }
+		virtual size_t classSize()const noexcept { return sizeof(DebugType); }
+		virtual std::string parentClassName() const noexcept { return Base::className() + ">" + Base::parentClassName(); }
 	};
 }

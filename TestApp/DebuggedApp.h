@@ -3,7 +3,7 @@
 #include <QtWidgets/QMainWindow>
 #include "ui_DebuggedApp.h"
 #include "TestDebugDerivedClass.h"
-
+#include <vector>
 
 class DebuggedApp : public QMainWindow
 {
@@ -15,8 +15,12 @@ public:
 
 private:
     Ui::DebuggedAppClass ui;
-    TestDebugClass m_debuggedParent;
-    TestDebugDerivedClass m_debugged;
+    std::vector<std::shared_ptr<TestDebugClass>> m_vDebugClass;
+    std::vector<std::shared_ptr<TestDebugDerivedClass>> m_vDebugDerivedClass;
+
+    void onAddClass();
+    void onAddDerived();
+    void onRemove();
 
     void onRefresh();
     void onLogError();

@@ -210,7 +210,8 @@ void PropertiesDelegate::setModelData(QWidget* editor, QAbstractItemModel* model
 Qt::ItemFlags DebugProperties::flags(const QModelIndex& index) const
 {
 	Qt::ItemFlags flag = Qt::ItemIsSelectable;
-	if (!m_vMembersVar.at(m_vDisplayedIndex.at(index.row())).m_bReadOnly && index.column() == 1)
+	if(index.row() >= NB_CLASS_INFO_ROWS && !m_vMembersVar.at(m_vDisplayedIndex.at(index.row() - NB_CLASS_INFO_ROWS)).m_bReadOnly &&
+		index.column() == 1)
 		flag = Qt::ItemIsEnabled | Qt::ItemIsEditable;
 
 	return flag;
@@ -234,8 +235,9 @@ void DebugProperties::filter(const QRegularExpression& a_filter)
 	endResetModel();
 }
 
-void DebugProperties::setup(const qint64& a_uid, const VarList& a_vData)
+void DebugProperties::setup(const Debugger::ClassInfo& a_info, const int64_t& a_uid, const VarList& a_vData)
 {	
+	m_info = a_info;
 	m_uid = a_uid;
 	beginResetModel();
 	m_vDisplayedIndex.clear();
@@ -257,7 +259,7 @@ QModelIndex DebugProperties::parent(const QModelIndex& child) const
 
 int DebugProperties::rowCount(const QModelIndex& parent) const
 {
-	return static_cast<int>(m_vDisplayedIndex.size());
+	return static_cast<int>(m_vDisplayedIndex.size() + NB_CLASS_INFO_ROWS);
 }
 
 int DebugProperties::columnCount(const QModelIndex& parent) const
@@ -268,12 +270,34 @@ int DebugProperties::columnCount(const QModelIndex& parent) const
 QVariant DebugProperties::data(const QModelIndex& index, int role) const
 {
 	QVariant var;
+
+	int iRow = index.row();
+	int iVarOffset = iRow - NB_CLASS_INFO_ROWS;
+
+	
 	if (index.column() == 0)
 	{
 		switch (role)
 		{
 		case Qt::DisplayRole:
-			var = m_vMembersVar.at(m_vDisplayedIndex.at(index.row())).m_sName;
+			switch (iRow)
+			{
+			case 0:
+				var = "Class name";
+				break;
+
+			case 1:
+				var = "Inheritance";
+				break;
+
+			case 2:
+				var = "Size";
+				break;
+
+			default:
+				var = m_vMembersVar.at(m_vDisplayedIndex.at(iVarOffset)).m_sName;
+				break;
+			}
 			break;
 		default:
 			break;
@@ -284,89 +308,123 @@ QVariant DebugProperties::data(const QModelIndex& index, int role) const
 		switch (role)
 		{
 		case Qt::DisplayRole:
-			var = m_vMembersVar.at(m_vDisplayedIndex.at(index.row())).m_value;
+			switch (iRow)
+			{
+			case 0:
+				var = QString::fromStdString(m_info.m_className);
+				break;
+
+			case 1:
+				var = QString::fromStdString(m_info.m_inheritance);
+				break;
+
+			case 2:
+				var = QString("%1 o").arg(m_info.m_classSize);
+				break;
+
+			default:
+				var = m_vMembersVar.at(m_vDisplayedIndex.at(iVarOffset)).m_value;
+				break;
+			}
+			
 			break;
 
 		case Qt::ForegroundRole:
-			switch (m_vMembersVar.at(m_vDisplayedIndex.at(index.row())).m_type)
-			{
-			case Debugger::EVarType::type_bool:
-				var = QColor(0, 237, 255);
-				break;
-
-			case Debugger::EVarType::type_short:
-				var = QColor(0, 147, 41);
-				break;
-
-			case Debugger::EVarType::type_ushort:
-				var = QColor(38, 147, 0);
-				break;
-
-			case Debugger::EVarType::type_int:
-				var = QColor(255, 170, 0);
-				break;
-
-			case Debugger::EVarType::type_uint:
-				var = QColor(255, 100, 0);
-				break;
-
-			case Debugger::EVarType::type_float:
-				var = QColor(255, 0, 0);
-				break;
-
-			case Debugger::EVarType::type_double:
-				var = QColor(255, 0, 178);
-				break;
-
-			case Debugger::EVarType::type_string:
-				var = QColor(0, 0, 255);
-				break;
-
-			default:
-				break;
-			}
+			if(iRow >= NB_CLASS_INFO_ROWS)
+				var = variableForeground(iVarOffset);
 			break;
 
 		case Qt::ToolTipRole:
-			switch (m_vMembersVar.at(m_vDisplayedIndex.at(index.row())).m_type)
-			{
-			case Debugger::EVarType::type_bool:
-				var = "Bool";
-				break;
-
-			case Debugger::EVarType::type_short:
-				var = "Short";
-				break;
-
-			case Debugger::EVarType::type_ushort:
-				var = "Unsigned short";
-				break;
-
-			case Debugger::EVarType::type_int:
-				var = "Int";
-				break;
-
-			case Debugger::EVarType::type_uint:
-				var = "Unsigned int";
-				break;
-
-			case Debugger::EVarType::type_float:
-				var = "Float";
-				break;
-
-			case Debugger::EVarType::type_double:
-				var = "Double";
-				break;
-
-			case Debugger::EVarType::type_string:
-				var = "String";
-				break;
-
-			default:
-				break;
-			}
+			if (iRow >= NB_CLASS_INFO_ROWS)
+				var = variableTooltip(iVarOffset);
 			break;
 		}
+	}
+	return var;
+}
+
+QVariant DebugProperties::variableForeground(const int a_index)const
+{
+	QVariant var;
+	switch (m_vMembersVar.at(m_vDisplayedIndex.at(a_index)).m_type)
+	{
+	case Debugger::EVarType::type_bool:
+		var = QColor(0, 237, 255);
+		break;
+
+	case Debugger::EVarType::type_short:
+		var = QColor(0, 147, 41);
+		break;
+
+	case Debugger::EVarType::type_ushort:
+		var = QColor(38, 147, 0);
+		break;
+
+	case Debugger::EVarType::type_int:
+		var = QColor(255, 170, 0);
+		break;
+
+	case Debugger::EVarType::type_uint:
+		var = QColor(255, 100, 0);
+		break;
+
+	case Debugger::EVarType::type_float:
+		var = QColor(255, 0, 0);
+		break;
+
+	case Debugger::EVarType::type_double:
+		var = QColor(255, 0, 178);
+		break;
+
+	case Debugger::EVarType::type_string:
+		var = QColor(0, 0, 255);
+		break;
+
+	default:
+		break;
+	}
+	return var;
+}
+
+QVariant DebugProperties::variableTooltip(const int a_index)const
+{
+	QVariant var;
+	switch (m_vMembersVar.at(m_vDisplayedIndex.at(a_index)).m_type)
+	{
+	case Debugger::EVarType::type_bool:
+		var = "Bool";
+		break;
+
+	case Debugger::EVarType::type_short:
+		var = "Short";
+		break;
+
+	case Debugger::EVarType::type_ushort:
+		var = "Unsigned short";
+		break;
+
+	case Debugger::EVarType::type_int:
+		var = "Int";
+		break;
+
+	case Debugger::EVarType::type_uint:
+		var = "Unsigned int";
+		break;
+
+	case Debugger::EVarType::type_float:
+		var = "Float";
+		break;
+
+	case Debugger::EVarType::type_double:
+		var = "Double";
+		break;
+
+	case Debugger::EVarType::type_string:
+		var = "String";
+		break;
+
+	default:
+		break;
 	}
 	return var;
 }

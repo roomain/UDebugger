@@ -49,7 +49,7 @@ QVariant DebugObjectModelNode::decorationRoleData()const
 
 QVariant DebugObjectModelNode::foregroundRoleData()const
 {
-	return DebugWorkspace::instance().getColor(m_objInstance.m_sClassName);
+	return DebugWorkspace::instance().getColor(QString::fromStdString(m_objInstance.m_classInfo.m_className));
 }
 
 QVariant DebugObjectModelNode::backgroundRoleData()const
@@ -74,7 +74,7 @@ QVariant DebugObjectModelNode::checkStateRoleData()const
 
 QVariant DebugObjectModelNode::tooltipRoleData()const
 {
-	return QString("Type: %1\nUUID: %2").arg(m_objInstance.m_sClassName).arg(m_objInstance.m_uid);
+	return QString("UUID: %2").arg(m_objInstance.m_uid);
 }
 
 QVariant DebugObjectModelNode::userRoleData([[maybe_unused]] const int a_offset)const

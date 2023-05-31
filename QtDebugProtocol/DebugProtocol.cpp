@@ -9,6 +9,8 @@
 
 
 const QString DebugProtocol::JSON_CLASS_NAME = "#JSON_CLASS_NAME";
+const QString DebugProtocol::JSON_CLASS_SIZE = "#JSON_CLASS_SIZE";
+const QString DebugProtocol::JSON_CLASS_INHERIT = "#JSON_INHERIT";
 const QString DebugProtocol::JSON_NAME = "#JSON_NAME";
 const QString DebugProtocol::JSON_VALUE = "#JSON_VALUE";
 const QString DebugProtocol::JSON_UID = "#JSON_UID";
@@ -68,25 +70,35 @@ void DebugProtocol::readVariable(const QJsonObject& a_object, VariableData& a_va
 }
 
 QJsonObject DebugProtocol::writeObjectInfo(const std::string_view& a_objectName, const std::string_view& a_className,
-    const uint64_t& a_uid, const uint64_t& a_owner)
+    const int64_t& a_uid, const int64_t& a_owner)
 {
     QJsonObject obj;
     obj.insert(JSON_NAME, QString::fromLatin1(a_objectName));
     obj.insert(JSON_CLASS_NAME, QString::fromLatin1(a_className));
-    obj.insert(JSON_UID, QJsonValue(static_cast<qint64>(a_uid)));
-    obj.insert(JSON_OWNER, QJsonValue(static_cast<qint64>(a_owner)));
+    obj.insert(JSON_UID, QJsonValue(static_cast<int64_t>(a_uid)));
+    obj.insert(JSON_OWNER, QJsonValue(static_cast<int64_t>(a_owner)));
     return obj;
 }
 
-QJsonObject DebugProtocol::writeObject(const std::string_view& a_objectName, const std::string_view& a_className,
-    const uint64_t& a_uid, const uint64_t& a_owner, const QJsonArray& a_properies)
+QJsonObject DebugProtocol::writeObject(const std::string_view& a_objectName, const Debugger::ClassInfo& a_classInfo,
+    const int64_t& a_uid, const int64_t& a_owner, const QJsonArray& a_properies)
 {
     QJsonObject obj;
     obj.insert(JSON_NAME, QString::fromLatin1(a_objectName));
-    obj.insert(JSON_CLASS_NAME, QString::fromLatin1(a_className));
-    obj.insert(JSON_UID, QJsonValue(static_cast<qint64>(a_uid)));
-    obj.insert(JSON_OWNER, QJsonValue(static_cast<qint64>(a_owner)));
+    obj.insert(JSON_CLASS_NAME, QString::fromLatin1(a_classInfo.m_className));
+    obj.insert(JSON_CLASS_INHERIT, QString::fromLatin1(a_classInfo.m_inheritance));
+    obj.insert(JSON_CLASS_SIZE, QJsonValue(static_cast<int64_t>(a_classInfo.m_classSize)));
+    obj.insert(JSON_UID, QJsonValue(static_cast<int64_t>(a_uid)));
+    obj.insert(JSON_OWNER, QJsonValue(static_cast<int64_t>(a_owner)));
     obj.insert(JSON_OBJ_PROP, a_properies);
+    return obj;
+}
+
+QJsonObject DebugProtocol::writeObjectOwnerChange(const int64_t& a_uid, const int64_t& a_owner)
+{
+    QJsonObject obj;
+    obj.insert(JSON_UID, QJsonValue(static_cast<int64_t>(a_uid)));
+    obj.insert(JSON_OWNER, QJsonValue(static_cast<int64_t>(a_owner)));
     return obj;
 }
 
@@ -94,17 +106,21 @@ DebugProtocol::Instance DebugProtocol::readObjectInfo(const QJsonObject& a_objec
 {
     Instance instance;
     instance.m_sName = a_object.value(JSON_NAME).toString();
-    instance.m_sClassName = a_object.value(JSON_CLASS_NAME).toString();
+    instance.m_classInfo.m_className = a_object.value(JSON_CLASS_NAME).toString().toStdString();
+    instance.m_classInfo.m_inheritance = a_object.value(JSON_CLASS_INHERIT).toString().toStdString();
+    instance.m_classInfo.m_classSize = a_object.value(JSON_CLASS_SIZE).toVariant().toULongLong();
     instance.m_uid = a_object.value(JSON_UID).toVariant().toULongLong();
     instance.m_ownerUID = a_object.value(JSON_OWNER).toVariant().toULongLong();
     return instance;
 }
 
-void DebugProtocol::readObject(const QJsonObject& a_object, QString& a_objectName, QString& a_className,
-    qint64& a_uid, qint64& a_owner, std::vector<VariableData>& a_variables)
+void DebugProtocol::readObject(const QJsonObject& a_object, QString& a_objectName, Debugger::ClassInfo& a_classInfo,
+    int64_t& a_uid, int64_t& a_owner, std::vector<VariableData>& a_variables)
 {
     a_objectName = a_object.value(JSON_NAME).toString();
-    a_className = a_object.value(JSON_CLASS_NAME).toString();
+    a_classInfo.m_className = a_object.value(JSON_CLASS_NAME).toString().toStdString();
+    a_classInfo.m_inheritance = a_object.value(JSON_CLASS_INHERIT).toString().toStdString();
+    a_classInfo.m_classSize = a_object.value(JSON_CLASS_SIZE).toVariant().toULongLong();
     a_uid = a_object.value(JSON_UID).toVariant().toULongLong();
     a_owner = a_object.value(JSON_OWNER).toVariant().toULongLong();
     auto arrayVar = a_object.value(JSON_OBJ_PROP).toArray();
@@ -118,6 +134,24 @@ void DebugProtocol::readObject(const QJsonObject& a_object, QString& a_objectNam
 }
 
 //---------------------------------------------------------------------------------------
+QByteArray DebugProtocol::genOwnerChangePacket(const int64_t& a_uid, const int64_t& a_owner)
+{
+    QJsonObject packet = writeObjectOwnerChange(a_uid, a_owner);
+    packet.insert(JSON_PACKET, static_cast<int>(DebugProtocol::DebugAnsType::ans_OwnerChange));
+    QJsonDocument doc(packet);
+    QByteArray baPacket = doc.toJson();
+    PacketProcessing::addPacketSize(baPacket);
+    return baPacket;
+}
+
+void DebugProtocol::readOwnerChangePacket(int64_t& a_uid, int64_t& a_owner)
+{
+    if (!m_object.isEmpty())
+    {
+        a_uid = m_object.value(JSON_UID).toVariant().toLongLong();
+        a_owner = m_object.value(JSON_OWNER).toVariant().toLongLong();
+    }
+}
 
 QByteArray DebugProtocol::genLogPacket(const Debugger::Log& a_log)
 {
@@ -201,7 +235,7 @@ QByteArray DebugProtocol::genPropPacket(const DebugSerializer& a_serializer, con
 {
     QJsonObject packet;
     packet.insert(JSON_PACKET, static_cast<int>(DebugProtocol::DebugAnsType::ans_PropRead));
-    packet.insert(JSON_UID, QJsonValue(static_cast<qint64>(a_serializer.objectId())));
+    packet.insert(JSON_UID, QJsonValue(static_cast<int64_t>(a_serializer.objectId())));
     packet.insert(JSON_OBJ_INST, a_serializer.object());
     packet.insert(JSON_VIEW, QJsonValue(a_iView));
 
@@ -217,13 +251,18 @@ QString DebugProtocol::toString()const
     return doc.toJson();
 }
 
-void DebugProtocol::readPropPacket(qint64& a_uid, std::vector<VariableData>& a_variables, int& a_iView)
+void DebugProtocol::readPropPacket(int64_t& a_uid, Debugger::ClassInfo& a_info, std::vector<VariableData>& a_variables, int& a_iView)
 {
     if (!m_object.isEmpty())
     {
         a_iView = m_object.value(JSON_VIEW).toInt();
         a_uid = m_object.value(JSON_UID).toVariant().toLongLong();
         auto objInst = m_object.value(JSON_OBJ_INST).toObject();
+
+        a_info.m_className = objInst.value(JSON_CLASS_NAME).toString().toStdString();
+        a_info.m_inheritance = objInst.value(JSON_CLASS_INHERIT).toString().toStdString();
+        a_info.m_classSize = objInst.value(JSON_CLASS_SIZE).toVariant().toLongLong();
+
         auto props = objInst.value(JSON_OBJ_PROP).toArray();
         a_variables.resize(props.size());
         int index = 0;
@@ -235,28 +274,28 @@ void DebugProtocol::readPropPacket(qint64& a_uid, std::vector<VariableData>& a_v
     }
 }
 
-QByteArray DebugProtocol::genRemovePacket(const qint64& a_uid)
+QByteArray DebugProtocol::genRemovePacket(const int64_t& a_uid)
 {
     QJsonObject packet;
     packet.insert(JSON_PACKET, static_cast<int>(DebugProtocol::DebugAnsType::ans_ObjRemoved));
-    packet.insert(JSON_UID, QJsonValue(static_cast<qint64>(a_uid)));
+    packet.insert(JSON_UID, QJsonValue(static_cast<int64_t>(a_uid)));
     QJsonDocument doc(packet);
     QByteArray baPacket = doc.toJson();
     PacketProcessing::addPacketSize(baPacket);
     return baPacket;
 }
 
-void DebugProtocol::readRemovePacket(qint64& a_uid)
+void DebugProtocol::readRemovePacket(int64_t& a_uid)
 {
     if (!m_object.isEmpty())
         a_uid = m_object.value(JSON_UID).toVariant().toLongLong();
 }
 
-QByteArray DebugProtocol::genReadPropPacket(const qint64& a_uid, const int a_iView)
+QByteArray DebugProtocol::genReadPropPacket(const int64_t& a_uid, const int a_iView)
 {
     QJsonObject packet;
     packet.insert(JSON_PACKET, static_cast<int>(DebugProtocol::DebugCMDType::cmd_PropRead));
-    packet.insert(JSON_UID, QJsonValue(static_cast<qint64>(a_uid)));
+    packet.insert(JSON_UID, QJsonValue(static_cast<int64_t>(a_uid)));
     packet.insert(JSON_VIEW, QJsonValue(a_iView));
     QJsonDocument doc(packet);
     QByteArray baPacket = doc.toJson();
@@ -264,18 +303,18 @@ QByteArray DebugProtocol::genReadPropPacket(const qint64& a_uid, const int a_iVi
     return baPacket;
 }
 
-void DebugProtocol::readReadPropPacket(qint64& a_uid, int& a_iView)
+void DebugProtocol::readReadPropPacket(int64_t& a_uid, int& a_iView)
 {
     a_iView = m_object.value(JSON_VIEW).toInt();
     if (!m_object.isEmpty())
         a_uid = m_object.value(JSON_UID).toVariant().toLongLong();
 }
 
-QByteArray DebugProtocol::genWritePropPacket(const qint64& a_uid, const int a_index, const QVariant& a_value)
+QByteArray DebugProtocol::genWritePropPacket(const int64_t& a_uid, const int a_index, const QVariant& a_value)
 {
     QJsonObject packet;
     packet.insert(JSON_PACKET, static_cast<int>(DebugProtocol::DebugCMDType::cmd_PropWrite));
-    packet.insert(JSON_UID, QJsonValue(static_cast<qint64>(a_uid)));
+    packet.insert(JSON_UID, QJsonValue(static_cast<int64_t>(a_uid)));
     packet.insert(JSON_VAR_INDEX, a_index);
     packet.insert(JSON_VALUE, QJsonValue::fromVariant(a_value));
     QJsonDocument doc(packet);
@@ -284,7 +323,7 @@ QByteArray DebugProtocol::genWritePropPacket(const qint64& a_uid, const int a_in
     return baPacket;
 }
 
-void DebugProtocol::readWritePropPacket(DebugDeserializer& a_deserialize, qint64& a_uid, int& a_index)
+void DebugProtocol::readWritePropPacket(DebugDeserializer& a_deserialize, int64_t& a_uid, int& a_index)
 {
     if (!m_object.isEmpty())
     {

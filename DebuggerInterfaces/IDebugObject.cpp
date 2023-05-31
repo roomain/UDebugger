@@ -3,7 +3,7 @@
 
 namespace Debugger
 {
-	uint64_t IDebugObject::s_Nextidentifier = 0;
+	int64_t IDebugObject::s_Nextidentifier = 0;
 	DebugDatabasePtr IDebugObject::s_pDatabase = std::make_shared<DebugDatabase>();
 
 	IDebugObject::IDebugObject() : m_uid{ ++s_Nextidentifier }

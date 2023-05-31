@@ -10,6 +10,7 @@
 #include "DebugLog.h"
 #include "DebugInstrumentation.h"
 #include "debugprotocol_global.h"
+#include "classInfo.h"
 
 class DebugDBSerializer;
 class DebugSerializer;
@@ -19,6 +20,8 @@ class DEBUGPROTOCOL_EXPORT DebugProtocol
 {
 private:
     static const QString JSON_CLASS_NAME;
+    static const QString JSON_CLASS_SIZE;
+    static const QString JSON_CLASS_INHERIT;
     static const QString JSON_NAME;
     static const QString JSON_VALUE;
     static const QString JSON_UID;
@@ -59,6 +62,7 @@ public:
         ans_PropWrite,
         ans_Log,
         ans_Instrument,
+        ans_OwnerChange,
         ans_ObjRemoved
     };
 
@@ -118,24 +122,25 @@ public:
 
 
     static QJsonObject writeObjectInfo(const std::string_view& a_objectName, const std::string_view& a_className,
-        const uint64_t& a_uid, const uint64_t& a_owner);
+        const int64_t& a_uid, const int64_t& a_owner);
 
-    static QJsonObject writeObject(const std::string_view& a_objectName, const std::string_view& a_className,
-        const uint64_t& a_uid, const uint64_t& a_owner, const QJsonArray& a_properies);
+    static QJsonObject writeObject(const std::string_view& a_objectName, const Debugger::ClassInfo& a_classInfo,
+        const int64_t& a_uid, const int64_t& a_owner, const QJsonArray& a_properies);
 
+    static QJsonObject writeObjectOwnerChange(const int64_t& a_uid, const int64_t& a_owner);
 
     struct Instance
     {
         QString m_sName;
-        QString m_sClassName;
-        qint64 m_uid;
-        qint64 m_ownerUID;
+        Debugger::ClassInfo m_classInfo;
+        int64_t m_uid;
+        int64_t m_ownerUID;
     };
 
     static Instance readObjectInfo(const QJsonObject& a_object);
 
-    static void readObject(const QJsonObject& a_object, QString& a_objectName, QString& a_className, 
-        qint64& a_uid, qint64& a_owner, std::vector<VariableData>& a_variables);
+    static void readObject(const QJsonObject& a_object, QString& a_objectName, Debugger::ClassInfo& a_classInfo,
+        int64_t& a_uid, int64_t& a_owner, std::vector<VariableData>& a_variables);
     
     //---------------------------------------------------------------------------------------
     struct LogMessage
@@ -147,6 +152,8 @@ public:
         int m_iLineLocation;
         QString m_logMessage;
     };
+    static QByteArray genOwnerChangePacket(const int64_t& a_uid, const int64_t& a_owner);
+    void readOwnerChangePacket(int64_t& a_uid, int64_t& a_owner);
 
     static QByteArray genLogPacket(const Debugger::Log& a_log);
     void readLogPacket(LogMessage& a_logMessage);
@@ -157,17 +164,17 @@ public:
     void readListPacket(std::list<Instance>& a_lInstance, int& a_iView);
 
     static QByteArray genPropPacket(const DebugSerializer& a_serializer, const int a_iView);
-    void readPropPacket(qint64& a_uid, std::vector<VariableData>& a_variables, int& a_iView);
+    void readPropPacket(int64_t& a_uid, Debugger::ClassInfo& a_info, std::vector<VariableData>& a_variables, int& a_iView);
 
-    static QByteArray genRemovePacket(const qint64& a_uid);
-    void readRemovePacket(qint64& a_uid);
+    static QByteArray genRemovePacket(const int64_t& a_uid);
+    void readRemovePacket(int64_t& a_uid);
 
-    static QByteArray genReadPropPacket(const qint64& a_uid, const int a_iView);
-    void readReadPropPacket(qint64& a_uid, int& a_iView);
+    static QByteArray genReadPropPacket(const int64_t& a_uid, const int a_iView);
+    void readReadPropPacket(int64_t& a_uid, int& a_iView);
 
 
-    static QByteArray genWritePropPacket(const qint64& a_uid, const int a_index, const QVariant& a_value);
-    void readWritePropPacket(DebugDeserializer& a_deserialize, qint64& a_uid, int& a_index);
+    static QByteArray genWritePropPacket(const int64_t& a_uid, const int a_index, const QVariant& a_value);
+    void readWritePropPacket(DebugDeserializer& a_deserialize, int64_t& a_uid, int& a_index);
 
     static QByteArray genInstrumentationPacket(const Debugger::InstrumentationData& a_instrumentation);
     void readInstrumentationPacket(QString& a_name, uint& a_time);

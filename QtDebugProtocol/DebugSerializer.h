@@ -14,7 +14,7 @@ public:
 	~DebugDBSerializer() = default;
 	[[nodiscard]]const QJsonArray& list()const { return m_objList; }
 	void beginDatabase()final;
-	void serializeObject(const std::string_view& a_name, const std::string_view& a_classname, const uint64_t& a_objUID, const uint64_t& a_owner)final;
+	void serializeObject(const std::string_view& a_name, const std::string_view& a_classname, const int64_t& a_objUID, const int64_t& a_owner)final;
 	void endDatabase()final {}
 };
 
@@ -26,9 +26,9 @@ private:
 	QJsonArray m_propList;
 
 	std::string_view m_currentObjName;
-	std::string_view m_currentClassName;
-	uint64_t m_currentUID = 0;
-	uint64_t m_currentObjOwner = 0;
+	Debugger::ClassInfo m_currentClassInfo;
+	int64_t m_currentUID = 0;
+	int64_t m_currentObjOwner = 0;
 
 
 public:
@@ -36,9 +36,9 @@ public:
 	~DebugSerializer() = default;
 	void clear();
 	QString toString()const;
-	uint64_t objectId()const { return m_currentUID; }
+	int64_t objectId()const { return m_currentUID; }
 	[[nodiscard]] inline const QJsonObject& object()const { return  m_containerObject; }
-	void beginObject(const std::string_view& a_name, const std::string_view& a_classname, const uint64_t& a_objUID, const uint64_t& a_owner) final;
+	void beginObject(const std::string_view& a_name, const Debugger::ClassInfo& a_classInfo, const int64_t& a_objUID, const int64_t& a_owner) final;
 	void endObject() final;
 	ISerializer& operator << (const Debugger::VariableInfo<bool>& a_value) final;
 	ISerializer& operator << (const Debugger::VariableInfo<short>& a_value) final;

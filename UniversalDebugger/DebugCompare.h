@@ -10,7 +10,11 @@ class DebugCompare : public QMainWindow
 public:
 	DebugCompare(QWidget *parent = nullptr);
 	~DebugCompare();
+	void compare(const int64_t& a_left, const int64_t& a_right);
 
 private:
 	Ui::DebugCompareClass ui;
+	void onAll();
+	void onlyEqual();
+	void onlyNotEqual();
 };

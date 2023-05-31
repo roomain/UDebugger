@@ -2,7 +2,8 @@
 #include <memory>
 #include <QAbstractItemModel>
 #include "qtmodels_global.h"
-class ITreeNode;
+#include "ITreeNode.h"
+
 
 class QTMODELS_EXPORT TreeModel : public QAbstractItemModel
 {
@@ -19,5 +20,7 @@ public:
 	virtual int rowCount(const QModelIndex& parent = QModelIndex()) const override;
 	virtual int columnCount(const QModelIndex& parent = QModelIndex()) const override;
 	virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
+	void filter(QModelIndex a_from, FilterTreeNode a_filter, const bool a_recursively);
+	void sort(QModelIndex a_from, SortTreeNode a_sorter, const bool a_recursively);
 };
 

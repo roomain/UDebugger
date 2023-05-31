@@ -25,6 +25,15 @@ void DebugClientConnection::decodePacket(const QByteArray& a_packet)
 		}
 		break;
 
+	case DebugProtocol::DebugAnsType::ans_OwnerChange:
+	{
+		int64_t uuid = -1;
+		int64_t owner = -1;
+		m_protocol.readOwnerChangePacket(uuid, owner);
+		emit sg_ownerChange(uuid, owner);
+	}
+		break;
+
 	case DebugProtocol::DebugAnsType::ans_Instrument:
 		// TODO
 		break;
@@ -39,9 +48,9 @@ void DebugClientConnection::decodePacket(const QByteArray& a_packet)
 
 	case DebugProtocol::DebugAnsType::ans_ObjRemoved:
 		{
-			qint64 uuid = -1;
+			int64_t uuid = -1;
 			m_protocol.readRemovePacket(uuid);
-			//tODO
+			emit sg_remove(uuid);
 		}
 		break;
 
@@ -49,10 +58,11 @@ void DebugClientConnection::decodePacket(const QByteArray& a_packet)
 	case DebugProtocol::DebugAnsType::ans_PropWrite:
 		{
 			int iViewId;
-			qint64 uuid;
+			int64_t uuid;
 			VarList vProp;
-			m_protocol.readPropPacket(uuid, vProp, iViewId);
-			emit sg_variables(iViewId, uuid, vProp);
+			Debugger::ClassInfo info;
+			m_protocol.readPropPacket(uuid, info, vProp, iViewId);
+			emit sg_variables(iViewId, uuid, info, vProp);
 		}
 		break;
 
@@ -133,13 +143,13 @@ void DebugClientConnection::onAskTree(const int a_view)
 	m_socket.flush();
 }
 
-void DebugClientConnection::onAskProps(const int a_index, const qint64& a_object)
+void DebugClientConnection::onAskProps(const int a_index, const int64_t& a_object)
 {
 	m_socket.write(m_protocol.genReadPropPacket(a_object, a_index));
 	m_socket.flush();
 }
 
-void DebugClientConnection::onWriteProp(const qint64& a_uid, const int a_propIndex, const QVariant& a_value)
+void DebugClientConnection::onWriteProp(const int64_t& a_uid, const int a_propIndex, const QVariant& a_value)
 {
 	m_socket.write(m_protocol.genWritePropPacket(a_uid, a_propIndex, a_value));
 	m_socket.flush();

@@ -72,12 +72,12 @@ void DebugExplorer::onItemClicked(const QModelIndex& a_index)
 	}
 }
 
-void DebugExplorer::onVariable(const int a_index, const qint64& a_object, const VarList& a_vars)
+void DebugExplorer::onVariable(const int a_index, const int64_t& a_object, const Debugger::ClassInfo& info, const VarList& a_vars)
 {
 	if (m_iIndex == a_index)
 	{
 		auto pPropsModel = static_cast<DebugProperties*>(ui.tbProps->model());
-		pPropsModel->setup(a_object, a_vars);
+		pPropsModel->setup(info, a_object, a_vars);
 	}
 }
 

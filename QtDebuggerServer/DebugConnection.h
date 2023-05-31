@@ -42,8 +42,8 @@ private:
     void processPropertyRead()const;
     void processPropertyWrite()const;
 
-    void onObjectAdded([[maybe_unused]] const uint64_t& a_uid)const;
-    void onObjectRemoved([[maybe_unused]] const uint64_t& a_uid, [[maybe_unused]] const uint64_t& a_parentUID)const;
-    void onObjectOwner([[maybe_unused]] const uint64_t& a_uid, [[maybe_unused]] const uint64_t& a_parentUID)const;
+    void onObjectAdded([[maybe_unused]] const int64_t& a_uid)const;
+    void onObjectRemoved([[maybe_unused]] const int64_t& a_uid, [[maybe_unused]] const int64_t& a_parentUID)const;
+    void onObjectOwner([[maybe_unused]] const int64_t& a_uid, const int64_t& a_parentUID)const;
 };
 

@@ -13,13 +13,14 @@ namespace Debugger
 		a_ISerializer.beginDatabase();
 		for (auto&& pObject : m_qDatabase)
 		{
-			a_ISerializer.serializeObject(pObject->objectName(), pObject->descriptor().className(), pObject->uiid(),
+			a_ISerializer.serializeObject(pObject->objectName(), m_pCurrentCreated == pObject ? "none" : pObject->descriptor().className(), pObject->uiid(),
 				pObject->owner() ? pObject->owner()->uiid() : 0);
 		}
 		a_ISerializer.endDatabase();
+		m_pCurrentCreated = nullptr;
 	}
 
-	bool DebugDatabase::serializeObject(const uint64_t& a_objUID, ISerializer& a_ISerializer)const
+	bool DebugDatabase::serializeObject(const int64_t& a_objUID, ISerializer& a_ISerializer)const
 	{
 		auto iter = std::ranges::find_if(m_qDatabase.cbegin(), m_qDatabase.cend(), [&a_objUID](auto pObject)
 			{
@@ -27,7 +28,9 @@ namespace Debugger
 			});
 		if (iter != m_qDatabase.cend())
 		{
-			a_ISerializer.beginObject((*iter)->objectName(), (*iter)->descriptor().className(), a_objUID,
+			ClassInfo info{ (*iter)->descriptor().className(),  (*iter)->descriptor().parentClassName(), (*iter)->descriptor().classSize() };
+
+			a_ISerializer.beginObject((*iter)->objectName(), info, a_objUID,
 				(*iter)->owner() ? (*iter)->owner()->uiid() : 0);
 			(*iter)->descriptor().serialize((*iter), a_ISerializer);
 			a_ISerializer.endObject();
@@ -36,7 +39,7 @@ namespace Debugger
 		return false;
 	}
 	
-	bool DebugDatabase::deserializeObject(const uint64_t& a_objUID, const unsigned int a_varIndex, IDeserializer& a_IDeserializer)
+	bool DebugDatabase::deserializeObject(const int64_t& a_objUID, const unsigned int a_varIndex, IDeserializer& a_IDeserializer)
 	{
 		auto iter = std::ranges::find_if(m_qDatabase.begin(), m_qDatabase.end(), [&a_objUID](auto pObject)
 			{
@@ -53,6 +56,7 @@ namespace Debugger
 
 	void DebugDatabase::append(IDebugObject* const a_pObject)
 	{
+		m_pCurrentCreated = a_pObject;
 		m_qDatabase.push_back(a_pObject);
 		if (m_bEnableReactor && m_reactors.onObjectAdded && a_pObject)
 			m_reactors.onObjectAdded(a_pObject->uiid());

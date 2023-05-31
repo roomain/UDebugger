@@ -93,7 +93,7 @@ void DebugConnection::processList()const
 void DebugConnection::processPropertyRead()const
 {
 	int iView = -1;
-	qint64 uid = 0;
+	int64_t uid = 0;
 	m_protocol.readReadPropPacket(uid, iView);
 	m_serializer.clear();
 	if (m_pSocket && m_pDatabase && m_pDatabase->serializeObject(uid, m_serializer))
@@ -107,7 +107,7 @@ void DebugConnection::processPropertyWrite()const
 {
 	if (m_pSocket && m_pDatabase)
 	{
-		qint64 uid = 0;
+		int64_t uid = 0;
 		int index = -1;
 		m_protocol.readWritePropPacket(m_deserializer, uid, index);
 		if (m_pDatabase->deserializeObject(uid, index, m_deserializer))
@@ -121,13 +121,13 @@ void DebugConnection::processPropertyWrite()const
 	}
 }
 
-void DebugConnection::onObjectAdded(const uint64_t&)const
+void DebugConnection::onObjectAdded(const int64_t&)const
 {
 	if (m_pSocket)
 		processList();
 }
 
-void DebugConnection::onObjectRemoved(const uint64_t& a_uid, const uint64_t&)const
+void DebugConnection::onObjectRemoved(const int64_t& a_uid, const int64_t&)const
 {
 	if (m_pSocket)
 	{
@@ -136,8 +136,11 @@ void DebugConnection::onObjectRemoved(const uint64_t& a_uid, const uint64_t&)con
 	}
 }
 
-void DebugConnection::onObjectOwner(const uint64_t&, const uint64_t&)const
+void DebugConnection::onObjectOwner(const int64_t& a_obj, const int64_t& a_owner)const
 {
 	if (m_pSocket)
-		processList();
+	{
+		m_pSocket->write(DebugProtocol::genOwnerChangePacket(a_obj, a_owner));
+		m_pSocket->flush();
+	}
 }

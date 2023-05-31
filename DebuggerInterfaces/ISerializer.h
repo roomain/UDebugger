@@ -2,15 +2,17 @@
 #include <string_view>
 #include <cstdint>
 #include "TVarInfo.h"
+#include "classInfo.h"
 
 namespace Debugger
 {
+
 	/*@brief interface for serialization*/
 	class ISerializer
 	{
 	public:
 		virtual ~ISerializer() = default;
-		virtual void beginObject(const std::string_view& a_name, const std::string_view& a_classname, const uint64_t& a_objUID, const uint64_t& a_owner) = 0;
+		virtual void beginObject(const std::string_view& a_name, const ClassInfo& a_classInfo, const int64_t& a_objUID, const int64_t& a_owner) = 0;
 		virtual void endObject() = 0;
 		virtual ISerializer& operator << (const VariableInfo<bool>& a_value) = 0;
 		virtual ISerializer& operator << (const VariableInfo<short>& a_value) = 0;
@@ -27,7 +29,7 @@ namespace Debugger
 	public:
 		virtual ~IDatabaseSerializer() = default;
 		virtual void beginDatabase() = 0;
-		virtual void serializeObject(const std::string_view& a_name, const std::string_view& a_classname, const uint64_t& a_objUID, const uint64_t& a_owner) = 0;
+		virtual void serializeObject(const std::string_view& a_name, const std::string_view& a_classname, const int64_t& a_objUID, const int64_t& a_owner) = 0;
 		virtual void endDatabase() = 0;
 	};
 }

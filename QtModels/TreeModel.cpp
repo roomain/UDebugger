@@ -1,5 +1,4 @@
 #include "TreeModel.h"
-#include "ITreeNode.h"
 #include <qdebug.h>
 
 TreeModel::TreeModel() : QAbstractItemModel()
@@ -80,4 +79,39 @@ QVariant TreeModel::data(const QModelIndex& index, int role) const
 		}
 	}
 	return var;
+}
+
+
+void TreeModel::filter(QModelIndex a_from, FilterTreeNode a_filter, const bool a_recursively)
+{
+	if (a_from.model() == this)
+	{
+		beginResetModel();
+		if (auto pItem = static_cast<ITreeNode*>(a_from.internalPointer()))
+		{
+			pItem->filterChildren(a_filter, a_recursively);
+		}
+		else
+		{
+			m_pRoot->filterChildren(a_filter, a_recursively);
+		}
+		endResetModel();
+	}
+}
+
+void TreeModel::sort(QModelIndex a_from, SortTreeNode a_sorter, const bool a_recursively)
+{
+	if (a_from.model() == this)
+	{
+		beginResetModel();
+		if (auto pItem = static_cast<ITreeNode*>(a_from.internalPointer()))
+		{
+			pItem->sortChildren(a_sorter, a_recursively);
+		}
+		else
+		{
+			m_pRoot->sortChildren(a_sorter, a_recursively);
+		}
+		endResetModel();
+	}
 }

@@ -25,9 +25,10 @@ public:
 	void addChildren(const std::vector<std::shared_ptr<ITreeNode>>& a_lchildren);
 	void removeChild(const std::shared_ptr<ITreeNode>& a_child);
 	void removeChild(const int a_index);
+	[[nodiscard]] std::shared_ptr<ITreeNode> findItem(FilterTreeNode a_filter)const;
 	void clear();
 	void filterChildren(FilterTreeNode a_filter, const bool a_recursively);
-	void sortChildren(SortTreeNode a_filter, const bool a_recursively);
+	void sortChildren(SortTreeNode a_sorter, const bool a_recursively);
 	[[nodiscard]] inline std::weak_ptr<ITreeNode> displayChildAt(const int a_index)const { return m_vDisplayedChildren.at(a_index); }
 	[[nodiscard]] inline std::weak_ptr<ITreeNode> parent()const { return m_pParentNode; }
 	[[nodiscard]] inline std::shared_ptr<ITreeNode> childAt(const int a_index)const { return m_vChildren.at(a_index); }

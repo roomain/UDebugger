@@ -68,6 +68,26 @@ void ITreeNode::clear()
 	m_vDisplayedChildren.clear();
 }
 
+std::shared_ptr<ITreeNode> ITreeNode::findItem(FilterTreeNode a_filter)const
+{
+	std::shared_ptr<ITreeNode> pItem;
+	for (auto& pChild : m_vChildren)
+	{
+		if (a_filter(pChild))
+		{
+			pItem = pChild;
+		}
+		else
+		{
+			pItem = pChild->findItem(a_filter);
+		}
+
+		if (pItem)
+			break;
+	}
+	return pItem;
+}
+
 void ITreeNode::filterChildren(FilterTreeNode a_filter, const bool a_recursively)
 {
 	m_vDisplayedChildren.clear();
@@ -87,14 +107,14 @@ void ITreeNode::filterChildren(FilterTreeNode a_filter, const bool a_recursively
 			pChild.lock()->filterChildren(a_filter, true);
 }
 
-void ITreeNode::sortChildren(SortTreeNode a_filter, const bool a_recursively)
+void ITreeNode::sortChildren(SortTreeNode a_sorter, const bool a_recursively)
 {
-	if (a_filter)
-		std::sort(m_vDisplayedChildren.begin(), m_vDisplayedChildren.end(), a_filter);
+	if (a_sorter)
+		std::sort(m_vDisplayedChildren.begin(), m_vDisplayedChildren.end(), a_sorter);
 	if (a_recursively)
 	{
 		for (auto& pChild : m_vDisplayedChildren)
-			pChild.lock()->sortChildren(a_filter, a_recursively);
+			pChild.lock()->sortChildren(a_sorter, a_recursively);
 	}
 }
 

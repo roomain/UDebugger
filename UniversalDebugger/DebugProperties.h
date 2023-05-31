@@ -5,6 +5,7 @@
 #include "DebugType.h"
 #include <qregularexpression.h>
 #include "defines.h"
+#include "classInfo.h"
 #include <QStyledItemDelegate>
 
 
@@ -16,7 +17,7 @@ public:
 	void setEditorData(QWidget* editor, const QModelIndex& index) const override;
 	void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index)const override;
 signals:
-	void sg_writeProperty(const qint64&, const int, const QVariant&)const;
+	void sg_writeProperty(const int64_t&, const int, const QVariant&)const;
 };
 
 
@@ -25,16 +26,22 @@ class DebugProperties : public QAbstractItemModel
 	friend class PropertiesDelegate;
 	Q_OBJECT
 private:
-	qint64 m_uid;
+	int64_t m_uid;
 	QRegularExpression m_regExp;
+	Debugger::ClassInfo m_info;
 	VarList m_vMembersVar;
 	std::vector<int> m_vDisplayedIndex;
+	static constexpr int NB_CLASS_INFO_ROWS = 3;
 	void applyFilter();
+
+	QVariant variableForeground(const int a_index)const;
+	QVariant variableTooltip(const int a_index)const;
+
 public:
 	QAbstractItemModel::QAbstractItemModel;
-	inline qint64 uid()const { return m_uid; }
+	inline int64_t uid()const { return m_uid; }
 	void filter(const QRegularExpression& a_filter);
-	void setup(const qint64& a_uid, const VarList& a_vData);
+	void setup(const Debugger::ClassInfo& a_info, const int64_t& a_uid, const VarList& a_vData);
 	QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const final;
 	QModelIndex parent(const QModelIndex& child) const final;
 	int rowCount(const QModelIndex& parent = QModelIndex()) const final;

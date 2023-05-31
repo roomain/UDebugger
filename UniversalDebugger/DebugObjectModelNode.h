@@ -25,6 +25,7 @@ public:
 	DebugObjectModelNode() = delete;
 	~DebugObjectModelNode() override = default;
 	DebugObjectModelNode(const DebugProtocol::Instance& a_data);
+	inline int64_t uid()const { return m_objInstance.m_uid; }
 	inline const DebugProtocol::Instance& data()const noexcept { return m_objInstance; }
 
 	[[nodiscard]] QVariant displayRoleData()const final;

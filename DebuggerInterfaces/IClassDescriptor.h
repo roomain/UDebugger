@@ -15,6 +15,8 @@ namespace Debugger
 	public:
 		virtual ~IClassDescriptor() = default;
 		virtual std::string className()const noexcept = 0;
+		virtual size_t classSize()const noexcept = 0;
+		virtual std::string parentClassName() const noexcept = 0;
 		/*@brief serialize described class*/
 		virtual void serialize(IDebugObject* const a_pDebug, ISerializer& a_pISerializer)const = 0;
 		/*@brief set debug value*/

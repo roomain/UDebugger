@@ -3,6 +3,7 @@
 #include <QMainWindow>
 #include "ui_DebugExplorer.h"
 #include "defines.h"
+#include "classInfo.h"
 
 class DebugClientConnection;
 
@@ -18,7 +19,7 @@ public:
 
 signals:
 	void sg_askInstances(const int);
-	void sg_askProperties(const int, const qint64&);
+	void sg_askProperties(const int, const int64_t&);
 	void sg_path(const QString&);
 
 private:
@@ -26,7 +27,7 @@ private:
 	int m_iUID;
 	Ui::DebugExplorerClass ui;
 
-	void onVariable(const int a_index, const qint64& a_object, const VarList& a_vars);
+	void onVariable(const int a_index, const int64_t& a_object, const Debugger::ClassInfo& info, const VarList& a_vars);
 	void onItemClicked(const QModelIndex& a_index);
 	void onSetupTree(const InstanceList& a_instanceList);
 	void onTabChanged(int a_index);
