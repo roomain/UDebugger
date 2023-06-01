@@ -25,6 +25,7 @@ void PacketProcessing::setCallback(const DecodeCallback& a_callback)
 
 void PacketProcessing::processPacket(const QByteArray& a_packet)
 {
+	QByteArray baTemp;
 	if (m_baCache.isEmpty() && PacketProcessing::packetSize(a_packet, m_packetSize))
 	{
 		// new packet
@@ -32,8 +33,7 @@ void PacketProcessing::processPacket(const QByteArray& a_packet)
 	}
 	else
 	{
-		// complete packet
-		m_baCache.append(a_packet.left(std::min<size_t>(a_packet.size(), m_sizeOfSizeT)));
+		m_baCache.append(a_packet);
 	}
 
 	while (m_baCache.size() >= m_packetSize && m_packetSize > 0)
@@ -44,7 +44,7 @@ void PacketProcessing::processPacket(const QByteArray& a_packet)
 		m_baCache = m_baCache.left(m_baCache.size() - m_packetSize);
 
 		if(PacketProcessing::packetSize(m_baCache, m_packetSize))
-			m_baCache = a_packet.right(m_baCache.size() - m_sizeOfSizeT);
+			m_baCache = m_baCache.right(m_baCache.size() - m_sizeOfSizeT);
 
 	}
 }

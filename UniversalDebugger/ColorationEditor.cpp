@@ -114,6 +114,7 @@ void ColorationEditor::onRemove()
 	auto pItem = ui.lwdgColor->currentItem();
 	if (pItem)
 	{
+		DebugWorkspace::instance().removeColor(pItem->text());
 		// remove from workspace
 		ui.lwdgColor->removeItemWidget(pItem);
 		delete pItem;

@@ -9,6 +9,19 @@
 
 namespace Debugger
 {
+	template<typename Type>
+	std::string type_to_string()
+	{
+		std::string strType = typeid(Type).name();
+		auto iter = std::find(strType.begin(), strType.end(), ' ');
+		if (iter != strType.end())
+		{
+			int index = iter - strType.begin();
+			strType = strType.substr(index + 1, strType.size() - index - 1);
+		}
+		return strType;
+	}
+
 	/*@brief describe class of type DebugType*/
 	template<typename DebugType>
 	class TClassDescriptor : public IClassDescriptor
@@ -17,7 +30,7 @@ namespace Debugger
 		std::vector<std::unique_ptr<IDebugVariable>> m_vVariableDescriptors;/*!< debug variables*/
 
 	public:
-		virtual std::string className()const noexcept override { return typeid(DebugType).name(); }
+		virtual std::string className()const noexcept override { return type_to_string<DebugType>(); }
 		virtual size_t classSize()const noexcept { return sizeof(DebugType); }
 		virtual std::string parentClassName() const noexcept { return ""; }
 
@@ -41,7 +54,7 @@ namespace Debugger
 	class TClassDerivedDescriptor : public Base
 	{
 	public:
-		virtual std::string className()const noexcept override { return typeid(DebugType).name(); }
+		virtual std::string className()const noexcept override { return type_to_string<DebugType>(); }
 		virtual size_t classSize()const noexcept { return sizeof(DebugType); }
 		virtual std::string parentClassName() const noexcept { return Base::className() + ">" + Base::parentClassName(); }
 	};

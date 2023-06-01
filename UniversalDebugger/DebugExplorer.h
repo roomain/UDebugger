@@ -6,6 +6,7 @@
 #include "classInfo.h"
 
 class DebugClientConnection;
+class ITreeNode;
 
 class DebugExplorer : public QMainWindow
 {
@@ -31,6 +32,7 @@ private:
 	void onItemClicked(const QModelIndex& a_index);
 	void onSetupTree(const InstanceList& a_instanceList);
 	void onTabChanged(int a_index);
+	void onFilter(const QString& a_filter);
 
 	void onRefreshTree();
 	void onRefreshProps();

@@ -2,7 +2,7 @@
 #include <QtWidgets/QApplication>
 #include "QDebuggerServer.h"
 #include "IDebugObject.h"
-#ifdef _WIN32
+#ifdef WIN32
 #include <Windows.h>
 #endif
 
@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
     DebuggedApp w;
     w.show();
 
-#ifdef _WIN32
+#ifdef WIN32
     ShowWindow(GetConsoleWindow(), SW_HIDE);
 #endif
     return a.exec();

@@ -69,6 +69,7 @@ void DebugClientConnection::decodePacket(const QByteArray& a_packet)
 	default:
 		break;
 	}
+	
 }
 
 void DebugClientConnection::onErrorOccured()

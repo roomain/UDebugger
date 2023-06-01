@@ -68,7 +68,7 @@
             <number>0</number>
            </property>
            <item row="0" column="0">
-            <widget class="QPushButton" name="pBtnRefreshClass_2">
+            <widget class="QPushButton" name="pBtnRefreshHierarchy">
              <property name="maximumSize">
               <size>
                <width>40</width>

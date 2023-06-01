@@ -5,6 +5,7 @@
 #include "DebugProperties.h"
 #include "DebugObjectModelNode.h"
 #include <qscrollbar.h>
+#include <QRegularExpression>
 
 
 int DebugExplorer::m_iIndex = 0;
@@ -25,16 +26,50 @@ DebugExplorer::DebugExplorer(QWidget* parent)
 
 	QObject::connect(ui.pBtnRefreshClass, QOverload<bool>::of(&QPushButton::clicked), this, &DebugExplorer::onRefreshTree);
 	QObject::connect(ui.pBtnRefreshProp, QOverload<bool>::of(&QPushButton::clicked), this, &DebugExplorer::onRefreshProps);
-	QObject::connect(ui.pBtnRefreshClass_2, QOverload<bool>::of(&QPushButton::clicked), this, &DebugExplorer::onRefreshTree);
+	QObject::connect(ui.pBtnRefreshHierarchy, QOverload<bool>::of(&QPushButton::clicked), this, &DebugExplorer::onRefreshTree);
 
 	QObject::connect(ui.tWClasses, &QTreeView::clicked, this, &DebugExplorer::onItemClicked);
 	QObject::connect(ui.tWHierarchy, &QTreeView::clicked, this, &DebugExplorer::onItemClicked);
 	QObject::connect(ui.tabWInstances, &QTabWidget::currentChanged, this, &DebugExplorer::onTabChanged);
+
+	QObject::connect(ui.filterHierarchy, &DebugFilter::sg_search, this, &DebugExplorer::onFilter);
+	QObject::connect(ui.filterClasses, &DebugFilter::sg_search, this, &DebugExplorer::onFilter);
+	QObject::connect(ui.filterProp, &DebugFilter::sg_search, this, &DebugExplorer::onFilter);
+
 }
 
 
 DebugExplorer::~DebugExplorer()
 {}
+
+void DebugExplorer::onFilter(const QString& a_filter)
+{
+	QRegularExpression regExp(a_filter);
+
+	FilterTreeNode filterTree = [&regExp](const std::shared_ptr<ITreeNode>& a_pNode)
+	{
+		auto pNode = std::dynamic_pointer_cast<DebugObjectModelNode>(a_pNode);
+		if (pNode)
+			return regExp.match(pNode->data().m_sName).hasMatch();
+		return true;
+	};
+
+	if (sender() == ui.filterHierarchy)
+	{
+		auto pHierarchyModel = static_cast<DebugHierarchyTreeModel*>(ui.tWHierarchy->model());
+		pHierarchyModel->filter(QModelIndex(), a_filter.isEmpty() ? nullptr : filterTree, true);
+	}
+	else if (sender() == ui.filterClasses)
+	{
+		auto pClassModel = static_cast<DebugClassTreeModel*>(ui.tWClasses->model());
+		pClassModel->filter(QModelIndex(), a_filter.isEmpty() ? nullptr : filterTree, true);
+	}
+	else
+	{
+		auto pPropsModel = static_cast<DebugProperties*>(ui.tbProps->model());
+		pPropsModel->filter(regExp);
+	}
+}
 
 void DebugExplorer::onTabChanged(int a_index)
 {

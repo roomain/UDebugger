@@ -84,7 +84,7 @@ QVariant TreeModel::data(const QModelIndex& index, int role) const
 
 void TreeModel::filter(QModelIndex a_from, FilterTreeNode a_filter, const bool a_recursively)
 {
-	if (a_from.model() == this)
+	if (a_from.model() == this || !a_from.isValid())
 	{
 		beginResetModel();
 		if (auto pItem = static_cast<ITreeNode*>(a_from.internalPointer()))

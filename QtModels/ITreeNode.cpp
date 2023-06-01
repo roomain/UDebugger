@@ -93,18 +93,24 @@ void ITreeNode::filterChildren(FilterTreeNode a_filter, const bool a_recursively
 	m_vDisplayedChildren.clear();
 	if (a_filter)
 	{
-		for (auto& pChild : m_vChildren | std::views::filter(a_filter))
-			m_vDisplayedChildren.emplace_back(pChild);
+		for (auto& pChild : m_vChildren)
+		{
+			if(a_recursively)
+				pChild->filterChildren(a_filter, true);
+			if (a_filter(pChild) || (a_recursively && pChild->count() > 0))
+				m_vDisplayedChildren.emplace_back(pChild);
+		}
 	}
 	else
 	{
 		for (auto& pChild : m_vChildren)
 			m_vDisplayedChildren.emplace_back(pChild);
+
+		if (a_recursively)
+			for (auto& pChild : m_vDisplayedChildren)
+				pChild.lock()->filterChildren(a_filter, true);
 	}
 
-	if(a_recursively)
-		for (auto& pChild : m_vDisplayedChildren)
-			pChild.lock()->filterChildren(a_filter, true);
 }
 
 void ITreeNode::sortChildren(SortTreeNode a_sorter, const bool a_recursively)

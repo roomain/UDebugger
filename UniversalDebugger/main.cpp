@@ -2,13 +2,13 @@
 #include <QtWidgets/QApplication>
 #include <qlocale.h>
 
-#ifdef _WIN32
+#ifdef WIN32
 #include <Windows.h>
 #endif
 
 int main(int argc, char *argv[])
 {
-#ifdef _WIN32
+#ifdef WIN32
     ShowWindow(GetConsoleWindow(), SW_HIDE);
 #endif
     QLocale::setDefault(QLocale("C"));

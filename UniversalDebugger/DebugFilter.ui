@@ -49,9 +49,28 @@
      </property>
     </widget>
    </item>
+   <item>
+    <widget class="QPushButton" name="pBtnReset">
+     <property name="maximumSize">
+      <size>
+       <width>30</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="DebuggerUI.qrc">
+       <normaloff>:/DebuggerUI/resources/remove.png</normaloff>:/DebuggerUI/resources/remove.png</iconset>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources/>
+ <resources>
+  <include location="DebuggerUI.qrc"/>
+ </resources>
  <connections/>
 </ui>
