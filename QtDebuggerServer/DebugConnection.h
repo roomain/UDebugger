@@ -40,6 +40,7 @@ private:
     void decodePacket(const QByteArray& a_packet)const;
     void processList()const;
     void processPropertyRead()const;
+    void processPropertyCompare()const;
     void processPropertyWrite()const;
 
     void onObjectAdded([[maybe_unused]] const int64_t& a_uid)const;

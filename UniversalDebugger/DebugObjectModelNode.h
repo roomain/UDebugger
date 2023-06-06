@@ -14,6 +14,7 @@ public:
 	[[nodiscard]] QVariant decorationRoleData()const final;
 	[[nodiscard]] QVariant tooltipRoleData()const final;
 	[[nodiscard]] QVariant fontRoleData()const final;
+	[[nodiscard]] QVariant userRoleData([[maybe_unused]] const int a_offset)const final{ return -1; }
 };
 
 class DebugObjectModelNode : public ITreeNode

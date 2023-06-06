@@ -71,6 +71,11 @@ void DebugConnection::decodePacket(const QByteArray& a_packet)const
 		processPropertyWrite();
 		break;
 
+
+	case DebugProtocol::DebugCMDType::cmd_Compare:
+		processPropertyCompare();
+		break;
+
 	default:
 		break;
 	}
@@ -90,6 +95,23 @@ void DebugConnection::processList()const
 	}
 }
 
+void DebugConnection::processPropertyCompare()const
+{
+	int iView = -1;
+	int64_t uid0 = 0;
+	int64_t uid1 = 0;
+	m_protocol.readReadPropComparePacket(uid0, uid1, iView);
+	m_serializer.clear();
+	DebugSerializer tmpSerializer;
+	if (m_pSocket && m_pDatabase && (uid0 >= 0) && (uid1 >= 0) && 
+		m_pDatabase->serializeObject(uid0, m_serializer) &&
+		m_pDatabase->serializeObject(uid1, tmpSerializer))
+	{
+		m_pSocket->write(DebugProtocol::genPropComparePacket(uid0, m_serializer.object(), uid1, tmpSerializer.object(), iView));
+		m_pSocket->flush();
+	}
+}
+
 void DebugConnection::processPropertyRead()const
 {
 	int iView = -1;
@@ -102,6 +124,9 @@ void DebugConnection::processPropertyRead()const
 		m_pSocket->flush();
 	}
 }
+
+
+
 
 void DebugConnection::processPropertyWrite()const
 {

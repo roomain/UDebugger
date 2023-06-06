@@ -33,6 +33,7 @@ public:
 	void connectTo(const QString& a_address, const ushort a_port);
 	void onAskTree(const int a_view);
 	void onAskProps(const int a_index, const int64_t& a_object);
+	void onAskCompare(const int a_index, const int64_t& a_object, const int64_t& a_objectComp);
 	void onWriteProp(const int64_t& a_uid, const int a_propIndex, const QVariant& a_value);
 
 signals:
@@ -47,4 +48,5 @@ signals:
 
 	void sg_instances(const InstanceList&);
 	void sg_variables(const int, const int64_t&, const Debugger::ClassInfo&, const VarList&);
+	void sg_compare(const int, const ComparisonData&, const ComparisonData&);
 };

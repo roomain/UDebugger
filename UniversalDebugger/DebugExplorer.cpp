@@ -6,15 +6,22 @@
 #include "DebugObjectModelNode.h"
 #include <qscrollbar.h>
 #include <QRegularExpression>
+#include <qevent.h>
+#include <qmenu.h>
+#include "DebugCompare.h"
 
 
 int DebugExplorer::m_iIndex = 0;
 
 DebugExplorer::DebugExplorer(QWidget* parent)
-	: QMainWindow(parent)
+	: QMainWindow(parent), m_selectMenu(this)
 {
 	m_iUID = m_iIndex++;
 	ui.setupUi(this);
+	m_selectMenu.addAction(ui.actionLeft_for_comparison);
+	m_selectMenu.addAction(ui.actionRight_for_comparison);
+	m_selectMenu.addAction(ui.actionCompare);
+
 	ui.tabWInstances->setTabPosition(QTabWidget::South);
 	auto pClassModel = new DebugClassTreeModel;
 	auto pHierarchyModel = new DebugHierarchyTreeModel;
@@ -36,11 +43,70 @@ DebugExplorer::DebugExplorer(QWidget* parent)
 	QObject::connect(ui.filterClasses, &DebugFilter::sg_search, this, &DebugExplorer::onFilter);
 	QObject::connect(ui.filterProp, &DebugFilter::sg_search, this, &DebugExplorer::onFilter);
 
+
+	QObject::connect(ui.tWClasses, &ExplorerTreeView::sg_rightClicked, this, &DebugExplorer::onRightClicked);
+	QObject::connect(ui.tWHierarchy, &ExplorerTreeView::sg_rightClicked, this, &DebugExplorer::onRightClicked);
+
+
+	QObject::connect(ui.pageCompare, &DebugCompare::sg_close, this, &DebugExplorer::onCloseCompare);
 }
 
 
 DebugExplorer::~DebugExplorer()
 {}
+
+void DebugExplorer::onCloseCompare()
+{
+	ui.stackedWidget->setCurrentIndex(0);
+}
+
+void DebugExplorer::onCompareRefresh()
+{
+	emit sg_askCompare(m_iUID, m_compareRight, m_compareRight);
+}
+
+void DebugExplorer::onRightClicked(const int64_t& a_UID, const QPoint& a_pos, const QModelIndex& a_index)
+{
+	if (a_UID < 0)
+		return;
+
+	onItemClicked(a_index);
+	m_selectMenu.move(a_pos);
+	ui.actionCompare->setVisible(m_compareLeft > -1 || m_compareRight > -1);
+	auto pAct = m_selectMenu.exec();
+	if (pAct)
+	{
+		if (pAct == ui.actionLeft_for_comparison)
+		{
+			m_compareLeft = a_UID;
+			m_LastSelected = m_compareLeft;
+			m_lastSelectedObject = a_index.model()->data(a_index, Qt::DisplayRole).toString();
+		}
+		else if (pAct == ui.actionRight_for_comparison)
+		{
+			m_compareRight = a_UID;
+			m_LastSelected = m_compareRight;
+			m_lastSelectedObject = a_index.model()->data(a_index, Qt::DisplayRole).toString();
+		}
+		else if (m_compareRight == m_LastSelected)
+		{
+			m_compareLeft = a_UID;
+			m_LastSelected = m_compareLeft;
+			ui.pageCompare->setComparisonNames(a_index.model()->data(a_index, Qt::DisplayRole).toString(), m_lastSelectedObject);
+			emit sg_askCompare(m_iUID, m_compareLeft, m_compareRight);
+			ui.stackedWidget->setCurrentIndex(1);
+			auto pClassModel = static_cast<DebugClassTreeModel*>(ui.tWClasses->model());
+		}
+		else
+		{
+			m_compareRight = a_UID;
+			m_LastSelected = m_compareRight;
+			ui.pageCompare->setComparisonNames(m_lastSelectedObject, a_index.model()->data(a_index, Qt::DisplayRole).toString());
+			emit sg_askCompare(m_iUID, m_compareLeft, m_compareRight);
+			ui.stackedWidget->setCurrentIndex(1);
+		}
+	}
+}
 
 void DebugExplorer::onFilter(const QString& a_filter)
 {
@@ -107,6 +173,12 @@ void DebugExplorer::onItemClicked(const QModelIndex& a_index)
 	}
 }
 
+void DebugExplorer::onCompare(const int a_index, const ComparisonData& a_data0, const ComparisonData& a_data1)
+{
+	if (a_index == m_iUID)
+		ui.pageCompare->compare(a_data0, a_data1);
+}
+
 void DebugExplorer::onVariable(const int a_index, const int64_t& a_object, const Debugger::ClassInfo& info, const VarList& a_vars)
 {
 	if (m_iIndex == a_index)
@@ -118,6 +190,9 @@ void DebugExplorer::onVariable(const int a_index, const int64_t& a_object, const
 
 void DebugExplorer::onSetupTree(const InstanceList& a_instanceList)
 {
+	m_compareLeft = -1;
+	m_compareRight = -1;
+	m_LastSelected = -1;
 	auto pClassModel = static_cast<DebugClassTreeModel*>(ui.tWClasses->model());
 	auto pHierarchyModel = static_cast<DebugHierarchyTreeModel*>(ui.tWHierarchy->model());
 	
@@ -146,6 +221,8 @@ void DebugExplorer::connect(DebugClientConnection& a_connection)
 	QObject::connect(&a_connection, &DebugClientConnection::sg_instances, this, &DebugExplorer::onSetupTree);
 	QObject::connect(&a_connection, &DebugClientConnection::sg_variables, this, &DebugExplorer::onVariable);
 	QObject::connect(this, &DebugExplorer::sg_askProperties, &a_connection, &DebugClientConnection::onAskProps);
+	QObject::connect(this, &DebugExplorer::sg_askCompare, &a_connection, &DebugClientConnection::onAskCompare);
+	QObject::connect(&a_connection, &DebugClientConnection::sg_compare, this, &DebugExplorer::onCompare);
 }
 
 void DebugExplorer::onRefreshTree()

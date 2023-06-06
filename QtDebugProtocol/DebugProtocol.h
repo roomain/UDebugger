@@ -18,6 +18,22 @@ class DebugDeserializer;
 
 class DEBUGPROTOCOL_EXPORT DebugProtocol
 {
+public:
+
+    struct VariableData
+    {
+        QString m_sName;
+        Debugger::EVarType m_type;
+        QVariant m_value;
+        bool m_bReadOnly;
+    };
+
+    struct ClassCompareData : Debugger::ClassInfo
+    {
+        int64_t m_uid;
+        std::vector<VariableData> m_variables;
+    };
+
 private:
     static const QString JSON_CLASS_NAME;
     static const QString JSON_CLASS_SIZE;
@@ -25,6 +41,7 @@ private:
     static const QString JSON_NAME;
     static const QString JSON_VALUE;
     static const QString JSON_UID;
+    static const QString JSON_UIDS;
     static const QString JSON_VIEW;
     static const QString JSON_OWNER;
     static const QString JSON_OBJECT;
@@ -45,13 +62,16 @@ private:
 
     QJsonObject m_object;
 
+    static void read(const QJsonObject& a_object, ClassCompareData& a_data);
+
 public:
     enum class DebugCMDType
     {
         cmd_unknown,
         cmd_List,		// list all objects
         cmd_PropRead,	// read properties of an object
-        cmd_PropWrite	// write an object property
+        cmd_PropWrite,	// write an object property
+        cmd_Compare
     };
 
     enum class DebugAnsType
@@ -63,7 +83,8 @@ public:
         ans_Log,
         ans_Instrument,
         ans_OwnerChange,
-        ans_ObjRemoved
+        ans_ObjRemoved,
+        ans_Compare
     };
 
     DebugAnsType clientRead(const QByteArray& a_packet);
@@ -109,13 +130,6 @@ public:
         return variable;
     }
 
-    struct VariableData
-    {
-        QString m_sName;
-        Debugger::EVarType m_type;
-        QVariant m_value;
-        bool m_bReadOnly;
-    };
 
     static void readVariable(const QJsonObject& a_object, VariableData& a_varData);
     QString toString()const;
@@ -172,6 +186,14 @@ public:
     static QByteArray genReadPropPacket(const int64_t& a_uid, const int a_iView);
     void readReadPropPacket(int64_t& a_uid, int& a_iView);
 
+
+    static QByteArray genReadPropComparePacket(const int64_t& a_uid0, const int64_t& a_uid1, const int a_iView);
+    void readReadPropComparePacket(int64_t& a_uid0, int64_t& a_uid1, int& a_iView);
+
+    static QByteArray genPropComparePacket(const int64_t& a_uid0, const QJsonObject& a_data0,
+        const int64_t& a_uid1, const QJsonObject& a_data1, const int a_iView);
+
+    void reaPropComparePacket(ClassCompareData& a_data0, ClassCompareData& a_data1, int& a_iView);
 
     static QByteArray genWritePropPacket(const int64_t& a_uid, const int a_index, const QVariant& a_value);
     void readWritePropPacket(DebugDeserializer& a_deserialize, int64_t& a_uid, int& a_index);

@@ -66,6 +66,17 @@ void DebugClientConnection::decodePacket(const QByteArray& a_packet)
 		}
 		break;
 
+
+	case DebugProtocol::DebugAnsType::ans_Compare:
+	{
+		int iViewId;
+		ComparisonData data0;
+		ComparisonData data1;
+		m_protocol.reaPropComparePacket(data0, data1, iViewId);
+		emit sg_compare(iViewId, data0, data1);
+	}
+		break;
+
 	default:
 		break;
 	}
@@ -147,6 +158,12 @@ void DebugClientConnection::onAskTree(const int a_view)
 void DebugClientConnection::onAskProps(const int a_index, const int64_t& a_object)
 {
 	m_socket.write(m_protocol.genReadPropPacket(a_object, a_index));
+	m_socket.flush();
+}
+
+void DebugClientConnection::onAskCompare(const int a_index, const int64_t& a_object, const int64_t& a_objectComp)
+{
+	m_socket.write(m_protocol.genReadPropComparePacket(a_object, a_objectComp, a_index));
 	m_socket.flush();
 }
 

@@ -11,7 +11,7 @@ QWidget* PropertiesDelegate::createEditor(QWidget* parent, const QStyleOptionVie
 {
 	QWidget* pWidget = nullptr;
 	auto pModel = static_cast<const DebugProperties*>(index.model());
-	switch (pModel->m_vMembersVar.at(pModel->m_vDisplayedIndex.at(index.row())).m_type)
+	switch (pModel->m_vMembersVar.at(pModel->m_vDisplayedIndex.at(index.row() - DebugProperties::NB_CLASS_INFO_ROWS).m_indexMember).m_type)
 	{
 	case Debugger::EVarType::type_bool:
 	{
@@ -90,8 +90,8 @@ QWidget* PropertiesDelegate::createEditor(QWidget* parent, const QStyleOptionVie
 void PropertiesDelegate::setEditorData(QWidget* editor, const QModelIndex& index) const
 {
 	auto pModel = static_cast<const DebugProperties*>(index.model());
-	QVariant varValue = pModel->m_vMembersVar.at(pModel->m_vDisplayedIndex.at(index.row())).m_value;
-	switch (pModel->m_vMembersVar.at(pModel->m_vDisplayedIndex.at(index.row())).m_type)
+	QVariant varValue = pModel->m_vMembersVar.at(pModel->m_vDisplayedIndex.at(index.row() - DebugProperties::NB_CLASS_INFO_ROWS).m_indexMember).m_value;
+	switch (pModel->m_vMembersVar.at(pModel->m_vDisplayedIndex.at(index.row() - DebugProperties::NB_CLASS_INFO_ROWS).m_indexMember).m_type)
 	{
 	case Debugger::EVarType::type_bool:
 	{
@@ -149,8 +149,8 @@ void PropertiesDelegate::setEditorData(QWidget* editor, const QModelIndex& index
 void PropertiesDelegate::setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index)const
 {
 	DebugProperties* const pModel = static_cast<DebugProperties* const>(model);
-	int propIndex = pModel->m_vDisplayedIndex.at(index.row());
-	switch (pModel->m_vMembersVar.at(pModel->m_vDisplayedIndex.at(index.row())).m_type)
+	int propIndex = pModel->m_vDisplayedIndex.at(index.row() - DebugProperties::NB_CLASS_INFO_ROWS).m_indexMember;
+	switch (pModel->m_vMembersVar.at(propIndex).m_type)
 	{
 	case Debugger::EVarType::type_bool:
 	{
@@ -210,7 +210,7 @@ void PropertiesDelegate::setModelData(QWidget* editor, QAbstractItemModel* model
 Qt::ItemFlags DebugProperties::flags(const QModelIndex& index) const
 {
 	Qt::ItemFlags flag = Qt::ItemIsSelectable;
-	if(index.row() >= NB_CLASS_INFO_ROWS && !m_vMembersVar.at(m_vDisplayedIndex.at(index.row() - NB_CLASS_INFO_ROWS)).m_bReadOnly &&
+	if(index.row() >= NB_CLASS_INFO_ROWS && !m_vMembersVar.at(m_vDisplayedIndex.at(index.row() - NB_CLASS_INFO_ROWS).m_indexMember).m_bReadOnly &&
 		index.column() == 1)
 		flag = Qt::ItemIsEnabled | Qt::ItemIsEditable;
 
@@ -223,7 +223,7 @@ void DebugProperties::applyFilter()
 	for (int i = 0; i < m_vMembersVar.size(); ++i)
 	{
 		if (m_regExp.match(m_vMembersVar.at(i).m_sName).hasMatch())
-			m_vDisplayedIndex.emplace_back(i);
+			m_vDisplayedIndex.emplace_back(DisplayData{.m_indexMember = i});
 	}
 }
 
@@ -295,7 +295,8 @@ QVariant DebugProperties::data(const QModelIndex& index, int role) const
 				break;
 
 			default:
-				var = m_vMembersVar.at(m_vDisplayedIndex.at(iVarOffset)).m_sName;
+				if (m_vDisplayedIndex.at(iVarOffset).m_indexMember >= 0)
+					var = m_vMembersVar.at(m_vDisplayedIndex.at(iVarOffset).m_indexMember).m_sName;
 				break;
 			}
 			break;
@@ -323,10 +324,16 @@ QVariant DebugProperties::data(const QModelIndex& index, int role) const
 				break;
 
 			default:
-				var = m_vMembersVar.at(m_vDisplayedIndex.at(iVarOffset)).m_value;
+				if(m_vDisplayedIndex.at(iVarOffset).m_indexMember >= 0)
+					var = m_vMembersVar.at(m_vDisplayedIndex.at(iVarOffset).m_indexMember).m_value;
 				break;
 			}
 			
+			break;
+
+		case Qt::BackgroundRole:
+			if (iRow >= NB_CLASS_INFO_ROWS)
+				var = variableBackground(iVarOffset);
 			break;
 
 		case Qt::ForegroundRole:
@@ -345,51 +352,68 @@ QVariant DebugProperties::data(const QModelIndex& index, int role) const
 
 QVariant DebugProperties::variableForeground(const int a_index)const
 {
-	QVariant var;
-	switch (m_vMembersVar.at(m_vDisplayedIndex.at(a_index)).m_type)
+	int index = m_vDisplayedIndex.at(a_index).m_indexMember;
+	QVariant var = m_vDisplayedIndex.at(a_index).m_fgColor;
+	if (!var.isValid())
 	{
-	case Debugger::EVarType::type_bool:
-		var = QColor(0, 237, 255);
-		break;
+		if (index >= 0)
+			return var;
 
-	case Debugger::EVarType::type_short:
-		var = QColor(0, 147, 41);
-		break;
+		switch (m_vMembersVar.at(index).m_type)
+		{
+		case Debugger::EVarType::type_bool:
+			var = QColor(0, 237, 255);
+			break;
 
-	case Debugger::EVarType::type_ushort:
-		var = QColor(38, 147, 0);
-		break;
+		case Debugger::EVarType::type_short:
+			var = QColor(0, 147, 41);
+			break;
 
-	case Debugger::EVarType::type_int:
-		var = QColor(255, 170, 0);
-		break;
+		case Debugger::EVarType::type_ushort:
+			var = QColor(38, 147, 0);
+			break;
 
-	case Debugger::EVarType::type_uint:
-		var = QColor(255, 100, 0);
-		break;
+		case Debugger::EVarType::type_int:
+			var = QColor(255, 170, 0);
+			break;
 
-	case Debugger::EVarType::type_float:
-		var = QColor(255, 0, 0);
-		break;
+		case Debugger::EVarType::type_uint:
+			var = QColor(255, 100, 0);
+			break;
 
-	case Debugger::EVarType::type_double:
-		var = QColor(255, 0, 178);
-		break;
+		case Debugger::EVarType::type_float:
+			var = QColor(255, 0, 0);
+			break;
 
-	case Debugger::EVarType::type_string:
-		var = QColor(0, 0, 255);
-		break;
+		case Debugger::EVarType::type_double:
+			var = QColor(255, 0, 178);
+			break;
 
-	default:
-		break;
+		case Debugger::EVarType::type_string:
+			var = QColor(0, 0, 255);
+			break;
+
+		default:
+			break;
+		}
 	}
 	return var;
 }
 
+QVariant DebugProperties::variableBackground(const int a_index)const
+{
+	return m_vDisplayedIndex.at(a_index).m_bkColor;
+}
+
 QVariant DebugProperties::variableTooltip(const int a_index)const
 {
+	int index = m_vDisplayedIndex.at(a_index).m_indexMember;
 	QVariant var;
-	switch (m_vMembersVar.at(m_vDisplayedIndex.at(a_index)).m_type)
+
+	if (index >= 0)
+		return var;
+
+	switch (m_vMembersVar.at(index).m_type)
 	{
 	case Debugger::EVarType::type_bool:
 		var = "Bool";
@@ -448,4 +472,236 @@ QVariant DebugProperties::headerData(int section, Qt::Orientation orientation, i
 
 	}
 	return var;
+}
+
+void DebugProperties::compare(const DebugProperties::CompareMode a_mode, DebugProperties* const a_pFirst, DebugProperties* const a_pSecond)
+{
+	switch (a_mode)
+	{
+	case DebugProperties::CompareMode::All:
+		DebugProperties::compareAll(a_pFirst, a_pSecond);
+		break;
+
+	case DebugProperties::CompareMode::Different:
+		DebugProperties::compareDifferent(a_pFirst, a_pSecond);
+		break;
+
+	case DebugProperties::CompareMode::Equal:
+		DebugProperties::compareEqual(a_pFirst, a_pSecond);
+		break;
+
+	default:
+		break;
+	}
+}
+
+void DebugProperties::compareEqual(DebugProperties* const a_pFirst, DebugProperties* const a_pSecond)
+{
+	std::vector<IndexCompare> lCompare;
+	compare(lCompare, a_pFirst, a_pSecond);
+
+	a_pFirst->beginResetModel();
+	a_pSecond->beginResetModel();
+	a_pFirst->m_vDisplayedIndex.clear();
+	a_pSecond->m_vDisplayedIndex.clear();
+
+	QFont font;
+	font.setBold(true);
+
+	for (const auto& pair : lCompare)
+	{
+		if (pair.first == pair.second)
+		{
+			bool bSame = a_pFirst->m_vMembersVar.at(pair.first).m_type == a_pSecond->m_vMembersVar.at(pair.first).m_type;
+			if (bSame)
+				bSame = a_pFirst->m_vMembersVar.at(pair.first).m_value == a_pSecond->m_vMembersVar.at(pair.first).m_value;
+
+			if (bSame)
+			{
+				a_pFirst->m_vDisplayedIndex.emplace_back(DisplayData{
+					.m_indexMember = pair.first
+					});
+
+				a_pSecond->m_vDisplayedIndex.emplace_back(DisplayData{
+					.m_indexMember = pair.second
+					});
+			}
+		}
+	}
+
+	a_pSecond->endResetModel();
+	a_pFirst->endResetModel();
+}
+
+void DebugProperties::compareAll(DebugProperties* const a_pFirst, DebugProperties* const a_pSecond)
+{
+	std::vector<IndexCompare> lCompare;
+	compare(lCompare, a_pFirst, a_pSecond);
+
+	a_pFirst->beginResetModel();
+	a_pSecond->beginResetModel();
+	a_pFirst->m_vDisplayedIndex.clear();
+	a_pSecond->m_vDisplayedIndex.clear();
+
+	QFont font;
+	font.setBold(true);
+
+	for (const auto& pair : lCompare)
+	{
+		if (pair.first == pair.second)
+		{
+			bool bSame = a_pFirst->m_vMembersVar.at(pair.first).m_type == a_pSecond->m_vMembersVar.at(pair.first).m_type;
+			if (bSame)
+				bSame = a_pFirst->m_vMembersVar.at(pair.first).m_value == a_pSecond->m_vMembersVar.at(pair.first).m_value;
+
+			a_pFirst->m_vDisplayedIndex.emplace_back(DisplayData{
+				.m_indexMember = pair.first,
+				.m_bkColor = !bSame ? QColor(255, 0,0) : QColor(0, 200, 0),
+				.m_fgColor = QColor(255,255,255),
+				.m_font = !bSame ? font : QVariant(),
+				});
+
+			a_pSecond->m_vDisplayedIndex.emplace_back(DisplayData{
+				.m_indexMember = pair.second,
+				.m_bkColor = !bSame ? QColor(255, 0,0) : QColor(0, 200, 0),
+				.m_fgColor = QColor(255,255,255),
+				.m_font = !bSame ? font : QVariant(),
+				});
+		}
+		else
+		{
+			a_pFirst->m_vDisplayedIndex.emplace_back(DisplayData{
+				.m_indexMember = pair.first,
+				.m_bkColor = pair.first >= 0 ? QColor(0,255,0) : QVariant(),
+				.m_fgColor = pair.first >= 0 ? QColor(255,255,255) : QVariant(),
+				.m_font = pair.first >= 0 ? font : QVariant(),
+				});
+
+			a_pSecond->m_vDisplayedIndex.emplace_back(DisplayData{
+				.m_indexMember = pair.second,
+				.m_bkColor = pair.second >= 0 ? QColor(0,255,0) : QVariant(),
+				.m_fgColor = pair.second >= 0 ? QColor(255,255,255) : QVariant(),
+				.m_font = pair.second >= 0 ? font : QVariant(),
+				});
+		}
+	}
+
+	a_pSecond->endResetModel();
+	a_pFirst->endResetModel();
+}
+
+void DebugProperties::compareDifferent(DebugProperties* const a_pFirst, DebugProperties* const a_pSecond)
+{
+	std::vector<IndexCompare> lCompare;
+	compare(lCompare, a_pFirst, a_pSecond);
+
+	a_pFirst->beginResetModel();
+	a_pSecond->beginResetModel();
+
+	a_pFirst->m_vDisplayedIndex.clear();
+	a_pSecond->m_vDisplayedIndex.clear();
+
+	QFont font;
+	font.setBold(true);
+
+	for (const auto& pair : lCompare)
+	{
+		if (pair.first == pair.second)
+		{
+			bool bSame = a_pFirst->m_vMembersVar.at(pair.first).m_type == a_pSecond->m_vMembersVar.at(pair.first).m_type;
+			if (bSame)
+				bSame = a_pFirst->m_vMembersVar.at(pair.first).m_value == a_pSecond->m_vMembersVar.at(pair.first).m_value;
+
+			if (!bSame)
+			{
+				a_pFirst->m_vDisplayedIndex.emplace_back(DisplayData{
+					.m_indexMember = pair.first,
+					.m_bkColor = !bSame ? QColor(255, 0,0) : QVariant(),
+					.m_fgColor = !bSame ? QColor(255,255,255) : QVariant(),
+					.m_font = !bSame ? font : QVariant(),
+					});
+
+				a_pSecond->m_vDisplayedIndex.emplace_back(DisplayData{
+					.m_indexMember = pair.second,
+					.m_bkColor = !bSame ? QColor(255, 0,0) : QVariant(),
+					.m_fgColor = !bSame ? QColor(255,255,255) : QVariant(),
+					.m_font = !bSame ? font : QVariant(),
+					});
+			}
+		}
+		else
+		{
+			a_pFirst->m_vDisplayedIndex.emplace_back(DisplayData{
+				.m_indexMember = pair.first,
+				.m_bkColor = pair.first >= 0 ? QColor(0,255,0) : QVariant(),
+				.m_fgColor = pair.first >= 0 ? QColor(255,255,255) : QVariant(),
+				.m_font = pair.first >= 0 ? font : QVariant(),
+				});
+
+			a_pSecond->m_vDisplayedIndex.emplace_back(DisplayData{
+				.m_indexMember = pair.second,
+				.m_bkColor = pair.second >= 0 ? QColor(0,255,0) : QVariant(),
+				.m_fgColor = pair.second >= 0 ? QColor(255,255,255) : QVariant(),
+				.m_font = pair.second >= 0 ? font : QVariant(),
+				});
+		}
+	}
+
+	a_pSecond->endResetModel();
+	a_pFirst->endResetModel();
+	
+}
+
+void DebugProperties::compare(std::vector<IndexCompare>& a_lCompare, DebugProperties* const a_pFirst, DebugProperties* const a_pSecond)
+{
+	const int iFirstCount = static_cast<int>(a_pFirst->m_vMembersVar.size());
+	const int iSecCount = static_cast<int>(a_pSecond->m_vMembersVar.size());
+	int index = 0;
+	if (iFirstCount > iSecCount)
+	{
+		for (; index < iSecCount; ++index)
+		{
+			if (a_pFirst->m_vMembersVar.at(index).m_sName.compare(a_pSecond->m_vMembersVar.at(index).m_sName, Qt::CaseInsensitive) == 0)
+			{
+				a_lCompare.push_back(IndexCompare(index, index));
+			}
+			else
+			{
+				a_lCompare.push_back(IndexCompare(index, -1));
+				a_lCompare.push_back(IndexCompare(-1, index));
+			}
+		}
+
+		for (; index < iFirstCount; ++index)
+			a_lCompare.push_back(IndexCompare(index, -1));
+	}
+	else
+	{
+		for (; index < iFirstCount; ++index)
+		{
+			if (a_pFirst->m_vMembersVar.at(index).m_sName.compare(a_pSecond->m_vMembersVar.at(index).m_sName, Qt::CaseInsensitive) == 0)
+			{
+				a_lCompare.push_back(IndexCompare(index, index));
+			}
+			else
+			{
+				a_lCompare.push_back(IndexCompare(index, -1));
+				a_lCompare.push_back(IndexCompare(-1, index));
+			}
+		}
+
+		for (; index < iSecCount; ++index)
+			a_lCompare.push_back(IndexCompare(-1, index));
+	}
+
+	std::sort(a_lCompare.begin(), a_lCompare.end(), [](auto& pair0, auto& pair1)
+		{
+			if (pair0.first < 0)
+				return true;
+
+			if (pair1.first < 0)
+				return false;
+
+			return pair1.first < pair0.first;
+		});
 }

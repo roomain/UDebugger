@@ -14,6 +14,7 @@ const QString DebugProtocol::JSON_CLASS_INHERIT = "#JSON_INHERIT";
 const QString DebugProtocol::JSON_NAME = "#JSON_NAME";
 const QString DebugProtocol::JSON_VALUE = "#JSON_VALUE";
 const QString DebugProtocol::JSON_UID = "#JSON_UID";
+const QString DebugProtocol::JSON_UIDS = "#JSON_UIDS";
 const QString DebugProtocol::JSON_VIEW = "#JSON_VIEW";
 const QString DebugProtocol::JSON_OWNER = "#JSON_OWNER";
 const QString DebugProtocol::JSON_OBJECT = "#JSON_OBJECT";
@@ -245,6 +246,61 @@ QByteArray DebugProtocol::genPropPacket(const DebugSerializer& a_serializer, con
     return baPacket;
 }
 
+QByteArray DebugProtocol::genPropComparePacket(const int64_t& a_uid0, const QJsonObject& a_data0,
+    const int64_t& a_uid1, const QJsonObject& a_data1, const int a_iView)
+{
+    QJsonObject packet;
+    packet.insert(JSON_PACKET, static_cast<int>(DebugProtocol::DebugAnsType::ans_Compare));
+    QJsonArray arrayUID;
+    QJsonObject uidData0;
+    uidData0.insert(JSON_UID, QJsonValue(a_uid0));
+    uidData0.insert(JSON_OBJ_INST, a_data0);
+    arrayUID.append(uidData0);
+    QJsonObject uidData1;
+    uidData1.insert(JSON_UID, QJsonValue(a_uid1));
+    uidData1.insert(JSON_OBJ_INST, a_data1);
+    arrayUID.append(uidData1);
+    packet.insert(JSON_UIDS, arrayUID);
+
+    packet.insert(JSON_VIEW, QJsonValue(a_iView));
+
+    QJsonDocument doc(packet);
+    QByteArray baPacket = doc.toJson();
+    PacketProcessing::addPacketSize(baPacket);
+    return baPacket;
+}
+
+void DebugProtocol::read(const QJsonObject& a_object, ClassCompareData& a_data)
+{
+    a_data.m_uid = a_object.value(JSON_UID).toVariant().toLongLong();
+    auto objInst = a_object.value(JSON_OBJ_INST).toObject();
+    a_data.m_className = objInst.value(JSON_CLASS_NAME).toString().toStdString();
+    a_data.m_inheritance = objInst.value(JSON_CLASS_INHERIT).toString().toStdString();
+    a_data.m_classSize = objInst.value(JSON_CLASS_SIZE).toVariant().toLongLong();
+    auto props = objInst.value(JSON_OBJ_PROP).toArray();
+    a_data.m_variables.resize(props.size());
+    int index = 0;
+    for (const auto& cProp : props)
+    {
+        readVariable(cProp.toObject(), a_data.m_variables[index]);
+        ++index;
+    }
+}
+
+void DebugProtocol::reaPropComparePacket(ClassCompareData& a_data0, ClassCompareData& a_data1, int& a_iView)
+{
+    if (!m_object.isEmpty())
+    {
+        a_iView = m_object.value(JSON_VIEW).toInt();
+        auto arrayUID = m_object.value(JSON_UIDS).toArray();
+        if (arrayUID.size() == 2)
+        {
+            read(arrayUID[0].toObject(), a_data0);
+            read(arrayUID[1].toObject(), a_data1);
+        }
+    }
+}
+
 QString DebugProtocol::toString()const
 {
     QJsonDocument doc(m_object);
@@ -308,6 +364,36 @@ void DebugProtocol::readReadPropPacket(int64_t& a_uid, int& a_iView)
     a_iView = m_object.value(JSON_VIEW).toInt();
     if (!m_object.isEmpty())
         a_uid = m_object.value(JSON_UID).toVariant().toLongLong();
+}
+QByteArray DebugProtocol::genReadPropComparePacket(const int64_t& a_uid0, const int64_t& a_uid1, const int a_iView)
+{
+    QJsonObject packet;
+    packet.insert(JSON_PACKET, static_cast<int>(DebugProtocol::DebugCMDType::cmd_Compare));
+    QJsonArray arrayUID;
+    arrayUID.append(QJsonValue(static_cast<int64_t>(a_uid0)));
+    arrayUID.append(QJsonValue(static_cast<int64_t>(a_uid1)));
+    packet.insert(JSON_UIDS, arrayUID);
+    packet.insert(JSON_VIEW, QJsonValue(a_iView));
+    QJsonDocument doc(packet);
+    QByteArray baPacket = doc.toJson();
+    PacketProcessing::addPacketSize(baPacket);
+    return baPacket;
+}
+
+void DebugProtocol::readReadPropComparePacket(int64_t& a_uid0, int64_t& a_uid1, int& a_iView)
+{
+    a_uid0 = -1;
+    a_uid1 = -1;
+    a_iView = m_object.value(JSON_VIEW).toInt();
+    if (!m_object.isEmpty())
+    {
+        auto arrayUID = m_object.value(JSON_UIDS).toArray();
+        if (arrayUID.size() == 2)
+        {
+            a_uid0 = arrayUID[0].toVariant().toLongLong();
+            a_uid1 = arrayUID[1].toVariant().toLongLong();
+        }
+    }
 }
 
 QByteArray DebugProtocol::genWritePropPacket(const int64_t& a_uid, const int a_index, const QVariant& a_value)

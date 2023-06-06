@@ -35,7 +35,7 @@
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
          <widget class="QLabel" name="lblObjLeft">
@@ -49,7 +49,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
          <widget class="QLabel" name="lblObjRight">
@@ -78,9 +78,14 @@
    <addaction name="actionAll"/>
    <addaction name="actionOnly_different"/>
    <addaction name="actionOnly_same"/>
+   <addaction name="separator"/>
+   <addaction name="actionCLOSE"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionOnly_same">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="icon">
     <iconset resource="DebuggerUI.qrc">
      <normaloff>:/DebuggerUI/resources/equal.png</normaloff>:/DebuggerUI/resources/equal.png</iconset>
@@ -93,6 +98,9 @@
    </property>
   </action>
   <action name="actionOnly_different">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="icon">
     <iconset resource="DebuggerUI.qrc">
      <normaloff>:/DebuggerUI/resources/diff.png</normaloff>:/DebuggerUI/resources/diff.png</iconset>
@@ -105,6 +113,12 @@
    </property>
   </action>
   <action name="actionAll">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="icon">
     <iconset resource="DebuggerUI.qrc">
      <normaloff>:/DebuggerUI/resources/all.png</normaloff>:/DebuggerUI/resources/all.png</iconset>
@@ -123,6 +137,14 @@
    </property>
    <property name="text">
     <string>refresh</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionCLOSE">
+   <property name="text">
+    <string>CLOSE</string>
    </property>
    <property name="menuRole">
     <enum>QAction::NoRole</enum>

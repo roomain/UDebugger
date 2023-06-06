@@ -73,7 +73,7 @@ QVariant TreeModel::data(const QModelIndex& index, int role) const
 			break;
 
 		default:
-			if (role > Qt::UserRole)
+			if (role >= Qt::UserRole)
 				var = pItem->userRoleData(role - static_cast<int>(Qt::UserRole));
 			break;
 		}

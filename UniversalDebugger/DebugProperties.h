@@ -20,6 +20,12 @@ signals:
 	void sg_writeProperty(const int64_t&, const int, const QVariant&)const;
 };
 
+struct IndexCompare
+{
+	int first;
+	int second;
+};
+
 
 class DebugProperties : public QAbstractItemModel
 {
@@ -30,12 +36,26 @@ private:
 	QRegularExpression m_regExp;
 	Debugger::ClassInfo m_info;
 	VarList m_vMembersVar;
-	std::vector<int> m_vDisplayedIndex;
+
+	struct DisplayData
+	{
+		int m_indexMember;
+		QVariant m_bkColor;
+		QVariant m_fgColor;
+		QVariant m_font;
+	};
+	std::vector<DisplayData> m_vDisplayedIndex;
 	static constexpr int NB_CLASS_INFO_ROWS = 3;
 	void applyFilter();
 
 	QVariant variableForeground(const int a_index)const;
+	QVariant variableBackground(const int a_index)const;
 	QVariant variableTooltip(const int a_index)const;
+
+	static void compareEqual(DebugProperties* const a_pFirst, DebugProperties* const a_pSecond);
+	static void compareDifferent(DebugProperties* const a_pFirst, DebugProperties* const a_pSecond);
+	static void compareAll(DebugProperties* const a_pFirst, DebugProperties* const a_pSecond);
+	static void compare(std::vector<IndexCompare>& a_lCompare, DebugProperties* const a_pFirst, DebugProperties* const a_pSecond);
 
 public:
 	QAbstractItemModel::QAbstractItemModel;
@@ -49,6 +69,14 @@ public:
 	QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const final;
 	QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const final;
 	Qt::ItemFlags flags(const QModelIndex& index) const final;
+
+	enum class CompareMode
+	{
+		All,
+		Equal,
+		Different
+	};
+	static void compare(const CompareMode a_mode, DebugProperties* const a_pFirst, DebugProperties* const a_pSecond);
 
 signals:
 	void sg_write();

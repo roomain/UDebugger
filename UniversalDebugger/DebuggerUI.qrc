@@ -1,5 +1,8 @@
 <RCC>
   <qresource prefix="DebuggerUI">
+    <file>resources/compare.png</file>
+    <file>resources/left.png</file>
+    <file>resources/right.png</file>
     <file>./resources/object.png</file>
     <file>./resources/folder.png</file>
     <file>./resources/remove.png</file>
