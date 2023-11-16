@@ -34,8 +34,8 @@ namespace Debugger
     inline EVarType debug_type_of<std::string>() { return EVarType::type_string; }
 
     /*@brief template used as base class for debugging variables*/
-	template<typename TDebugObject, typename VariableType>
-	class TDebugVariable : public IDebugVariable
+    template<typename TDebugObject, typename VariableType>
+    class TDebugVariable : public IDebugVariable
     {
     public:
         using Setter = std::function<void(TDebugObject* const, const VariableType)>;
@@ -60,14 +60,15 @@ namespace Debugger
         {
             if (m_getter)
             {
+                VariableType varRet = m_getter(static_cast<TDebugObject* const>(a_pObj));
                 if (m_setter)
                 {
-                    m_setter(static_cast<TDebugObject* const>(a_pObj),
-                        a_editor.edit(m_variableName, false, m_getter(static_cast<TDebugObject* const>(a_pObj))));
+                    if (a_editor.edit(m_variableName, false,  varRet)))
+                        m_setter(static_cast<TDebugObject* const>(a_pObj), varRet);
                 }
                 else
                 {
-                    a_editor.edit(m_variableName, true, m_getter(static_cast<TDebugObject* const>(a_pObj)));
+                    a_editor.edit(m_variableName, true, varRet);
                 }
             }
         }
