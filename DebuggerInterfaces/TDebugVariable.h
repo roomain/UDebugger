@@ -63,11 +63,11 @@ namespace Debugger
                 if (m_setter)
                 {
                     m_setter(static_cast<TDebugObject* const>(a_pObj),
-                        a_editor.edit(m_getter(static_cast<TDebugObject* const>(a_pObj))));
+                        a_editor.edit(m_variableName, false, m_getter(static_cast<TDebugObject* const>(a_pObj))));
                 }
                 else
                 {
-                    a_editor.edit(m_getter(static_cast<TDebugObject* const>(a_pObj)));
+                    a_editor.edit(m_variableName, true, m_getter(static_cast<TDebugObject* const>(a_pObj)));
                 }
             }
         }
