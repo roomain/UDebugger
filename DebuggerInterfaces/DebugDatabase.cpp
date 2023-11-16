@@ -8,10 +8,17 @@
 namespace Debugger
 {
 
+	void DebugDatabase::readAllObject(ReadObjectCallback a_readCallback)const
+	{
+		std::lock_guard<std::mutex> lock(m_accessMutex);
+		for (const IDebugObject* pObject : m_qDatabase)
+			a_readCallback(pObject);
+	}
+
 	void DebugDatabase::serializeTree(IDatabaseSerializer& a_ISerializer)const
 	{
 		a_ISerializer.beginDatabase();
-		for (auto&& pObject : m_qDatabase)
+		for (const IDebugObject* pObject : m_qDatabase)
 		{
 			a_ISerializer.serializeObject(pObject->objectName(), m_pCurrentCreated == pObject ? "none" : pObject->descriptor().className(), pObject->uiid(),
 				pObject->owner() ? pObject->owner()->uiid() : 0);
@@ -56,6 +63,7 @@ namespace Debugger
 
 	void DebugDatabase::append(IDebugObject* const a_pObject)
 	{
+		std::lock_guard<std::mutex> lock(m_accessMutex);
 		m_pCurrentCreated = a_pObject;
 		m_qDatabase.push_back(a_pObject);
 		if (m_bEnableReactor && m_reactors.onObjectAdded && a_pObject)
@@ -64,6 +72,7 @@ namespace Debugger
 
 	void DebugDatabase::remove(IDebugObject* const a_pObject)
 	{
+		std::lock_guard<std::mutex> lock(m_accessMutex);
 		auto iter = std::ranges::find(m_qDatabase.begin(), m_qDatabase.end(), a_pObject);
 		if(iter != m_qDatabase.end())
 			m_qDatabase.erase(iter);

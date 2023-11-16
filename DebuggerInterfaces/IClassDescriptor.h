@@ -4,6 +4,7 @@
 #include <string>
 #include "ISerializer.h"
 #include "IDeserializer.h"
+#include "IInterfacePropertyEditor.h"
 
 namespace Debugger
 {
@@ -17,6 +18,7 @@ namespace Debugger
 		virtual std::string className()const noexcept = 0;
 		virtual size_t classSize()const noexcept = 0;
 		virtual std::string parentClassName() const noexcept = 0;
+		virtual void edit(IDebugObject* const a_pObj, IInterfacePropertyEditor& a_editor) = 0;
 		/*@brief serialize described class*/
 		virtual void serialize(IDebugObject* const a_pDebug, ISerializer& a_pISerializer)const = 0;
 		/*@brief set debug value*/

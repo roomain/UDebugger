@@ -3,6 +3,7 @@
 #include <memory>
 #include <cstdint>
 #include <functional>
+#include <mutex>
 #include "debugger_global.h"
 
 namespace Debugger
@@ -20,6 +21,8 @@ namespace Debugger
 		std::function<void(const int64_t&, const int64_t&)> onObjectOwner;
 	};
 
+	using ReadObjectCallback = std::function<void(const IDebugObject*)>;
+
 	/*@brief Debug database contains all debug instances*/
 	class DEBUGGER_INTERFACE_EXPORT DebugDatabase
 	{
@@ -28,14 +31,13 @@ namespace Debugger
 		bool m_bEnableReactor = true;
 		DebugDatabaseReactor m_reactors;
 		mutable IDebugObject* m_pCurrentCreated = nullptr;
+		mutable std::mutex m_accessMutex;
 
 	public:
 		DebugDatabase() = default;
 		virtual ~DebugDatabase() = default;
 
-		using Object_constIter = std::deque<IDebugObject*>::const_iterator;
-		Object_constIter cbegin()const { return m_qDatabase.cbegin(); }
-		Object_constIter cend()const { return m_qDatabase.cend(); }
+		void readAllObject(ReadObjectCallback a_readCallback)const;
 
 		void setEnableReactors(const bool a_bEnable) { m_bEnableReactor = a_bEnable; }
 		void setReactor(const DebugDatabaseReactor& a_reactors) { m_reactors = a_reactors; }

@@ -33,6 +33,14 @@ namespace Debugger
 		virtual std::string className()const noexcept override { return type_to_string<DebugType>(); }
 		virtual size_t classSize()const noexcept { return sizeof(DebugType); }
 		virtual std::string parentClassName() const noexcept { return ""; }
+		void edit(IDebugObject* const a_pObj, IInterfacePropertyEditor& a_editor) final
+		{
+			if (a_pObj)
+			{
+				for (auto&& descriptor : m_vVariableDescriptors)
+					descriptor->edit(a_pObj, a_editor);
+			}
+		}
 
 		void serialize(IDebugObject* const a_pObj, ISerializer& a_ISerializer)const final
 		{
@@ -59,3 +67,11 @@ namespace Debugger
 		virtual std::string parentClassName() const noexcept { return Base::className() + ">" + Base::parentClassName(); }
 	};
 }
+
+#define ADD_MEMBER(classname, type, memberName, getter, setter) \
+m_vVariableDescriptors.emplace_back(std::make_unique<TDebugVariable<classname, type>>(#memberName, \
+	std::bind_front(&classname::setter), std::bind_front(&classname::getter)));
+
+#define ADD_READ_ONLY_MEMBER(classname, type, memberName, getter) \
+m_vVariableDescriptors.emplace_back(std::make_unique<TDebugVariable<classname, type>>(#memberName, \
+	nullptr, std::bind_front(&classname::getter)));

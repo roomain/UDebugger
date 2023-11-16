@@ -56,6 +56,22 @@ namespace Debugger
             return !m_setter;
         }
 
+        void edit(IDebugObject* const a_pObj, IInterfacePropertyEditor& a_editor)
+        {
+            if (m_getter)
+            {
+                if (m_setter)
+                {
+                    m_setter(static_cast<TDebugObject* const>(a_pObj),
+                        a_editor.edit(m_getter(static_cast<TDebugObject* const>(a_pObj))));
+                }
+                else
+                {
+                    a_editor.edit(m_getter(static_cast<TDebugObject* const>(a_pObj)));
+                }
+            }
+        }
+
         inline void serialize(IDebugObject* const a_pObj, ISerializer& a_ISerializer)const final
         {
            if (m_getter && a_pObj)
