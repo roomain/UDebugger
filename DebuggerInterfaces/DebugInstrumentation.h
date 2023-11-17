@@ -5,9 +5,15 @@
 namespace Debugger
 {
 	/*@brief instrumentation data*/
-	struct InstrumentationData
+	class ScopedInstrumentation
 	{
-		std::chrono::duration<int, std::milli> m_duration;// in ms
+	private:
+		std::chrono::time_point<std::chrono::system_clock> m_timePoint;
 		std::string m_name;
+
+	public:
+		ScopedInstrumentation();
+		explicit ScopedInstrumentation(const std::string& a_name);
+		virtual ~ScopedInstrumentation();
 	};
 }
