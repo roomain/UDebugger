@@ -78,7 +78,7 @@ m_vVariableDescriptors.emplace_back(std::make_unique<TDebugVariable<classname, t
 
 #define GEN_DESCRIPTORNAME(classname) Debug##classname
 
-#define BEGIN_DESCRIPTOR(classname)
+#define BEGIN_DESCRIPTOR(classname) \
 class GEN_DESCRIPTORNAME(classname) : public TClassDescriptor<classname>\
 {\
 public:\
@@ -87,7 +87,7 @@ public:\
 {
 
 
-#define BEGIN_INHERIT_DESCRIPTOR(classname, parent)
+#define BEGIN_INHERIT_DESCRIPTOR(classname, parent) \
 class GEN_DESCRIPTORNAME(classname) : public TClassDerivedDescriptor<Debug##parent>\
 {\
 public:\
