@@ -90,3 +90,11 @@ Debugger::ISerializer& DebugSerializer::operator << (const Debugger::VariableInf
 	m_propList.append(QJsonValue(DebugProtocol::writeVariable(a_value)));
 	return *this;
 }
+
+Debugger::ISerializer& DebugSerializer::operator << (const Debugger::VariableInfo<Debugger::IDebugObject*>& a_value)
+{
+	Debugger::VariableInfo<int64_t> varProxy{ a_value.m_name, a_value.m_value->uiid(),
+		a_value.m_bReadOnly, a_value.m_type };
+	m_propList.append(QJsonValue(DebugProtocol::writeVariable(varProxy)));
+	return *this;
+}

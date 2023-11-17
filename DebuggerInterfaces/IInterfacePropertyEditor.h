@@ -21,5 +21,6 @@ namespace Debugger
 		virtual bool edit(const std::string& a_name, const bool a_readOnly, /*IN/OUT*/float& a_retValue) = 0;
 		virtual bool edit(const std::string& a_name, const bool a_readOnly, /*IN/OUT*/double& a_retValue) = 0;
 		virtual bool edit(const std::string& a_name, const bool a_readOnly, /*IN/OUT*/std::string& a_retValue) = 0;
+		virtual bool edit(const std::string& a_name, const bool a_readOnly, /*IN/OUT*/IDebugObject* a_value) = 0;
 	};
 }

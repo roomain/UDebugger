@@ -3,6 +3,7 @@
 #include <cstdint>
 #include "TVarInfo.h"
 #include "classInfo.h"
+#include "IDebugObject.h"
 
 namespace Debugger
 {
@@ -22,6 +23,7 @@ namespace Debugger
 		virtual ISerializer& operator << (const VariableInfo<float>& a_value) = 0;
 		virtual ISerializer& operator << (const VariableInfo<double>& a_value) = 0;
 		virtual ISerializer& operator << (const VariableInfo<std::string>& a_value) = 0;
+		virtual ISerializer& operator << (const VariableInfo<IDebugObject*>& a_value) = 0;
 	};
 
 	class IDatabaseSerializer

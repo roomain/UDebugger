@@ -5,6 +5,7 @@
 
 namespace Debugger
 {
+    class IDebugObject;
 
     template<typename Type>
     inline EVarType debug_type_of() { return EVarType::type_unknown; }
@@ -32,6 +33,9 @@ namespace Debugger
 
     template<>
     inline EVarType debug_type_of<std::string>() { return EVarType::type_string; }
+
+    template<>
+    inline EVarType debug_type_of<IDebugObject*>() { return EVarType::type_link; }
 
     /*@brief template used as base class for debugging variables*/
     template<typename TDebugObject, typename VariableType>
@@ -63,7 +67,7 @@ namespace Debugger
                 VariableType varRet = m_getter(static_cast<TDebugObject* const>(a_pObj));
                 if (m_setter)
                 {
-                    if (a_editor.edit(m_variableName, false,  varRet)))
+                    if (a_editor.edit(m_variableName, false,  varRet))
                         m_setter(static_cast<TDebugObject* const>(a_pObj), varRet);
                 }
                 else

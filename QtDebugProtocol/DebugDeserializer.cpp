@@ -53,3 +53,9 @@ const Debugger::IDeserializer& DebugDeserializer::operator >> (std::string& a_va
 	a_value = m_value.toString().toStdString();
 	return *this;
 }
+
+const Debugger::IDeserializer& DebugDeserializer::operator >> (Debugger::IDebugObject* a_value)const
+{
+	//
+	return *this;
+}

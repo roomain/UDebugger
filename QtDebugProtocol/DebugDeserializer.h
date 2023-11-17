@@ -20,5 +20,6 @@ public:
 	const IDeserializer& operator >> (float& a_value)const final;
 	const IDeserializer& operator >> (double& a_value)const final;
 	const IDeserializer& operator >> (std::string& a_value)const final;
+	const IDeserializer& operator >> (Debugger::IDebugObject*& a_value)const final;
 };
 

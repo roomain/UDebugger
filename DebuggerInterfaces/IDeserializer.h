@@ -3,6 +3,8 @@
 
 namespace Debugger
 {
+	class IDebugObject;
+
 	/*@brief deserializer interface*/
 	class IDeserializer
 	{
@@ -16,5 +18,6 @@ namespace Debugger
 		virtual const IDeserializer& operator >> (float& a_value)const = 0;
 		virtual const IDeserializer& operator >> (double& a_value)const = 0;
 		virtual const IDeserializer& operator >> (std::string& a_value)const = 0;
+		virtual const IDeserializer& operator >> (IDebugObject*& a_value)const = 0;
 	};
 }

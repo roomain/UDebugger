@@ -14,7 +14,8 @@ namespace Debugger
 		type_uint,
 		type_float,
 		type_double,
-		type_string
+		type_string,
+		type_link
 	};
 
 }

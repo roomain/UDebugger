@@ -11,6 +11,7 @@
 #include "DebugInstrumentation.h"
 #include "debugprotocol_global.h"
 #include "classInfo.h"
+#include "IDebugObject.h"
 
 class DebugDBSerializer;
 class DebugSerializer;
@@ -118,6 +119,9 @@ public:
     template<>
     static QJsonValue toValue<>(const std::string& a_value) { return QJsonValue(QString::fromLatin1(a_value)); }
 
+    template<>
+    static QJsonValue toValue<>(const int64_t& a_value)
+    { return QJsonValue(static_cast<qint64>(a_value)); }
 
     template<typename Type>
     static QJsonObject writeVariable(const Debugger::VariableInfo<Type>& a_var)

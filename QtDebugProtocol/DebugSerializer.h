@@ -3,6 +3,7 @@
 #include <qjsonobject.h>
 #include <qjsonarray.h>
 #include <ISerializer.h>
+#include <IDebugObject.h>
 #include "debugprotocol_global.h"
 
 class DEBUGPROTOCOL_EXPORT DebugDBSerializer : public Debugger::IDatabaseSerializer
@@ -48,5 +49,6 @@ public:
 	ISerializer& operator << (const Debugger::VariableInfo<float>& a_value) final;
 	ISerializer& operator << (const Debugger::VariableInfo<double>& a_value) final;
 	ISerializer& operator << (const Debugger::VariableInfo<std::string>& a_value) final;
+	ISerializer& operator << (const Debugger::VariableInfo<Debugger::IDebugObject*>& a_value) final;
 };
 
