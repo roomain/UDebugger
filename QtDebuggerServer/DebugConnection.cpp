@@ -31,7 +31,7 @@ void DebugConnection::log(const Debugger::Log& a_log)
 
 
 
-void DebugConnection::instrumentation(const Debugger::InstrumentationData& a_instrumentation)
+void DebugConnection::instrumentation(const Debugger::ScopedInstrumentation& a_instrumentation)
 {
 	if (m_pSocket)
 	{
@@ -40,7 +40,7 @@ void DebugConnection::instrumentation(const Debugger::InstrumentationData& a_ins
 	}
 }
 
-void DebugConnection::instrumentation(Debugger::InstrumentationData&& a_instrumentation)
+void DebugConnection::instrumentation(Debugger::ScopedInstrumentation&& a_instrumentation)
 {
 	if (m_pSocket)
 	{

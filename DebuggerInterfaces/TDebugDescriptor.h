@@ -3,6 +3,7 @@
 #include <vector>
 #include <functional>
 #include <typeinfo>
+#include <memory>
 	
 #include "IClassDescriptor.h"
 #include "IDebugVariable.h"
@@ -69,33 +70,37 @@ namespace Debugger
 }
 
 #define ADD_MEMBER(classname, type, memberName, getter, setter) \
-m_vVariableDescriptors.emplace_back(std::make_unique<TDebugVariable<classname, type>>(#memberName, \
+m_vVariableDescriptors.emplace_back(std::make_unique<Debugger::TDebugVariable<classname, type>>(std::string_view(#memberName), \
 	std::bind_front(&classname::setter), std::bind_front(&classname::getter)));
 
 #define ADD_READ_ONLY_MEMBER(classname, type, memberName, getter) \
-m_vVariableDescriptors.emplace_back(std::make_unique<TDebugVariable<classname, type>>(#memberName, \
+m_vVariableDescriptors.emplace_back(std::make_unique<Debugger::TDebugVariable<classname, type>>(std::string_view(#memberName), \
 	nullptr, std::bind_front(&classname::getter)));
 
-#define GEN_DESCRIPTORNAME(classname) Debug##classname
+#define GEN_DESCRIPTORNAME(classname) DebugDescriptor##classname
 
-#define BEGIN_DESCRIPTOR(classname) \
-class GEN_DESCRIPTORNAME(classname) : public TClassDescriptor<classname>\
+#define BEGIN_IMPLEMENT_DESCRIPTOR(name) \
+DebugDescriptor##name::DebugDescriptor##name(){
+
+#define END_IMPLEMENT_DECRIPTOR }
+
+
+#define DECLARE_DESCRIPTOR(classname) \
+class GEN_DESCRIPTORNAME(classname) : public Debugger::TClassDescriptor<classname>\
 {\
 public:\
-	~Debug##classname() = default; \
-	Debug##classname()\
-{
-
-
-#define BEGIN_INHERIT_DESCRIPTOR(classname, parent) \
-class GEN_DESCRIPTORNAME(classname) : public TClassDerivedDescriptor<Debug##parent>\
-{\
-public:\
-	~Debug##classname() = default; \
-	Debug##classname()\
-{
-
-
-#define END_DESCRIPTOR \
-}\
+	~DebugDescriptor##classname() = default; \
+	DebugDescriptor##classname();\
 };
+
+#define DECLARE_INHERIT_DESCRIPTOR(classname, parent) \
+class GEN_DESCRIPTORNAME(classname) : public Debugger::TClassDerivedDescriptor<DebugDescriptor##parent, classname>\
+{\
+public:\
+	~DebugDescriptor##classname() = default; \
+	DebugDescriptor##classname();\
+};
+
+#define DEBUG_OBJECT_TEMPLATE(classname) Debugger::TDebugObject<DebugDescriptor##classname>
+
+#define DEBUG_OBJECT_DERIVED_TEMPLATE(classname, parent) Debugger::TDebugDerivedObject<parent, DebugDescriptor##classname>

@@ -419,16 +419,16 @@ void DebugProtocol::readWritePropPacket(DebugDeserializer& a_deserialize, int64_
     }
 }
 
-QByteArray DebugProtocol::genInstrumentationPacket(const Debugger::InstrumentationData& a_instrumentation)
+QByteArray DebugProtocol::genInstrumentationPacket(const Debugger::ScopedInstrumentation& a_instrumentation)
 {
-    QJsonObject packet;
-    packet.insert(JSON_PACKET, static_cast<int>(DebugProtocol::DebugAnsType::ans_Instrument));
-    packet.insert(JSON_NAME, QString::fromLatin1(a_instrumentation.m_name));
-    packet.insert(JSON_DURATION, a_instrumentation.m_duration.count());
-    QJsonDocument doc(packet);
-    QByteArray baPacket = doc.toJson();
-    PacketProcessing::addPacketSize(baPacket);
-    return baPacket;
+    //QJsonObject packet;
+    //packet.insert(JSON_PACKET, static_cast<int>(DebugProtocol::DebugAnsType::ans_Instrument));
+    //packet.insert(JSON_NAME, QString::fromLatin1(a_instrumentation.m_name));
+    //packet.insert(JSON_DURATION, a_instrumentation.m_duration.count());
+    //QJsonDocument doc(packet);
+    //QByteArray baPacket = doc.toJson();
+    //PacketProcessing::addPacketSize(baPacket);
+    return QByteArray();
 }
 
 void DebugProtocol::readInstrumentationPacket(QString& a_name, uint& a_time)

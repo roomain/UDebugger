@@ -5,16 +5,11 @@
 
 class TestDebugClass;
 
-// descriptor
-class TestDescriptor : public Debugger::TClassDescriptor<TestDebugClass>
-{
-public:
-    TestDescriptor();
-    ~TestDescriptor() = default;
-};
+
+DECLARE_DESCRIPTOR(TestDebugClass)
 
 // class to debug
-class TestDebugClass : public Debugger::TDebugObject<TestDescriptor>
+class TestDebugClass : public DEBUG_OBJECT_TEMPLATE(TestDebugClass)
 {
 private:
     int m_iMember = 1;
@@ -35,3 +30,4 @@ public:
     bool getBool()const;
     std::string getString()const;
 };
+

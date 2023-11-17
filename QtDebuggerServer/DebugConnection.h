@@ -8,7 +8,7 @@
 #include <qjsonobject.h>
 #include "DebugSerializer.h"
 #include "DebugDeserializer.h"
-#include "DebugInstrumentation.h"
+#include "ScopedInstrumentation.h"
 #include "PacketProcessing.h"
 #include "DebugProtocol.h"
 #include "DebugLog.h"
@@ -32,8 +32,8 @@ public:
     explicit DebugConnection(const Debugger::DebugDatabasePtr& a_pDB, QTcpSocket* const a_pSocket);
     ~DebugConnection() = default;
     void log(const Debugger::Log& a_log);
-    void instrumentation(const Debugger::InstrumentationData& a_instrumentation);
-    void instrumentation(Debugger::InstrumentationData&& a_instrumentation);
+    void instrumentation(const Debugger::ScopedInstrumentation& a_instrumentation);
+    void instrumentation(Debugger::ScopedInstrumentation&& a_instrumentation);
 
 private:
     void onDataRecieved();

@@ -54,7 +54,7 @@ const Debugger::IDeserializer& DebugDeserializer::operator >> (std::string& a_va
 	return *this;
 }
 
-const Debugger::IDeserializer& DebugDeserializer::operator >> (Debugger::IDebugObject* a_value)const
+const Debugger::IDeserializer& DebugDeserializer::operator >> (Debugger::IDebugObject*& a_value)const
 {
 	//
 	return *this;

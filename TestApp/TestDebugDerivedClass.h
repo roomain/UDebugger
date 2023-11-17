@@ -1,19 +1,16 @@
 #pragma once
+#include "TDebugDescriptor.h"
 #include "TestDebugClass.h"
 #include "TDebugDerivedObject.h"
 #include <string>
 
 class TestDebugDerivedClass;
 
-class TestDerivedDescriptor : public Debugger::TClassDerivedDescriptor<TestDescriptor, TestDebugDerivedClass>
-{
-public:
-    TestDerivedDescriptor();
-    ~TestDerivedDescriptor() = default;
-};
+DECLARE_INHERIT_DESCRIPTOR(TestDebugDerivedClass, TestDebugClass)
 
 
-class TestDebugDerivedClass : public Debugger::TDebugDerivedObject<TestDebugClass, TestDerivedDescriptor>
+
+class TestDebugDerivedClass : public DEBUG_OBJECT_DERIVED_TEMPLATE(TestDebugDerivedClass, TestDebugClass)
 {
 private:
     short m_shMember = 45;

@@ -8,7 +8,7 @@
 #include <list>
 #include "TVarInfo.h"
 #include "DebugLog.h"
-#include "DebugInstrumentation.h"
+#include "ScopedInstrumentation.h"
 #include "debugprotocol_global.h"
 #include "classInfo.h"
 #include "IDebugObject.h"
@@ -202,6 +202,6 @@ public:
     static QByteArray genWritePropPacket(const int64_t& a_uid, const int a_index, const QVariant& a_value);
     void readWritePropPacket(DebugDeserializer& a_deserialize, int64_t& a_uid, int& a_index);
 
-    static QByteArray genInstrumentationPacket(const Debugger::InstrumentationData& a_instrumentation);
+    static QByteArray genInstrumentationPacket(const Debugger::ScopedInstrumentation& a_instrumentation);
     void readInstrumentationPacket(QString& a_name, uint& a_time);
 };
