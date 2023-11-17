@@ -17,3 +17,7 @@ namespace Debugger
 		virtual ~ScopedInstrumentation();
 	};
 }
+
+
+#define SCOPED_INSTRUMENTATION(name)\
+	Debugger::ScopedInstrumentation name(#name);
