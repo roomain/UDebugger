@@ -75,3 +75,26 @@ m_vVariableDescriptors.emplace_back(std::make_unique<TDebugVariable<classname, t
 #define ADD_READ_ONLY_MEMBER(classname, type, memberName, getter) \
 m_vVariableDescriptors.emplace_back(std::make_unique<TDebugVariable<classname, type>>(#memberName, \
 	nullptr, std::bind_front(&classname::getter)));
+
+
+#define BEGIN_DESCRIPTOR(classname)
+class Debug##classname : public TClassDescriptor<classname>\
+{\
+public:\
+	~Debug##classname() = default; \
+	Debug##classname()\
+{
+
+
+#define BEGIN_INHERIT_DESCRIPTOR(classname, parent)
+class Debug##classname : public TClassDerivedDescriptor<Debug##parent>\
+{\
+public:\
+	~Debug##classname() = default; \
+	Debug##classname()\
+{
+
+
+#define END_DESCRIPTOR \
+}\
+};
